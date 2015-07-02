@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@ public class UDPServerSocket implements Closeable{
     protected DatagramSocket socket;
 
     public UDPServerSocket(Logger logger, int port, String _interface){
+        this.logger = logger;
         try {
             socket = new DatagramSocket(new InetSocketAddress(_interface, port));
             socket.setBroadcast(true);
@@ -61,11 +62,11 @@ public class UDPServerSocket implements Closeable{
         DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
         try {
             socket.receive(dp);
+            dp.setData(Arrays.copyOf(dp.getData(), dp.getLength()));
+            return dp;
         } catch (SocketTimeoutException e) {
-
+            return null;
         }
-        dp.setData(Arrays.copyOf(dp.getData(), dp.getLength()));
-        return dp;
     }
 
     public void writePacket(byte[] buffer, InetSocketAddress dest) throws IOException {

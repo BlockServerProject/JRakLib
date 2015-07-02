@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,6 +25,7 @@ package net.beaconpe.jraklib.protocol;
  * Acknowledged.
  */
 public class ACK extends AcknowledgePacket{
+    public static byte ID = (byte) 0xc0;
 
     public byte getID(){
         return (byte) 0xc0;

@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@ import java.net.InetSocketAddress;
  * SERVER_HANDSHAKE (Encapsulated, 0x10)
  */
 public class SERVER_HANDSHAKE_DataPacket extends Packet{
-
+    public static byte ID = 0x10;
     public InetSocketAddress address;
     public InetSocketAddress[] systemAddresses = new InetSocketAddress[] {
             new InetSocketAddress("127.0.0.1", 0),
@@ -45,7 +45,7 @@ public class SERVER_HANDSHAKE_DataPacket extends Packet{
     public long sendPing;
     public long sendPong;
 
-    @Override
+
     public byte getID() {
         return 0x10;
     }

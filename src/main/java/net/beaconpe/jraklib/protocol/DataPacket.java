@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
  */
 package net.beaconpe.jraklib.protocol;
 
+import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
 import net.beaconpe.jraklib.Binary;
 
 import java.util.ArrayList;
@@ -63,7 +64,10 @@ public abstract class DataPacket extends Packet{
 
         while(!feof()){
             int offset = 0;
-            byte[] data = Binary.subbytes(buffer, this.offset);
+            byte[] data = Binary.subbytes(buffer, this.offset + 1);
+            if(data.length < 1){
+                break;
+            }
             EncapsulatedPacket packet = EncapsulatedPacket.fromBinary(data, false, offset);
             offset = packet.offset;
             this.offset = this.offset + packet.offset;

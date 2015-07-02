@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,6 +44,10 @@ public class EncapsulatedPacket {
 
     protected int offset;
 
+    public static EncapsulatedPacket fromBinary(byte[] binary){
+        return fromBinary(binary, false);
+    }
+
     public static EncapsulatedPacket fromBinary(byte[] binary, boolean internal){
         return fromBinary(binary, internal, -1);
     }
@@ -59,7 +63,7 @@ public class EncapsulatedPacket {
             packet.identifierACK = Binary.readInt(Binary.subbytes(binary, 5, 4));
             offset = 9;
         } else {
-            length = (int) Binary.readShort(Binary.subbytes(binary, 1, 2)) / 8;
+            length = Binary.readShort(Binary.subbytes(binary, 1, 2)) / 8;
             offset = 3;
             packet.identifierACK = -1;
         }
@@ -80,7 +84,7 @@ public class EncapsulatedPacket {
         if(packet.hasSplit){
             packet.splitCount = Binary.readInt(Binary.subbytes(binary, offset, 4));
             offset = offset + 4;
-            packet.splitID = Binary.readShort(Binary.subbytes(binary, offset, 2));
+            packet.splitID = (short) Binary.readShort(Binary.subbytes(binary, offset, 2));
             offset = offset + 2;
             packet.splitIndex = Binary.readInt(Binary.subbytes(binary, offset, 4));
             offset = offset + 4;

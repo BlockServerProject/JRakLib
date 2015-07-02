@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -86,9 +86,13 @@ public class JRakLibServer extends Thread{
     }
 
     public byte[] readMainToThreadPacket(){
-        byte[] d = internalQueue.get(0);
-        internalQueue.remove(d);
-        return d;
+        if(!internalQueue.isEmpty()) {
+            byte[] d = internalQueue.get(0);
+            internalQueue.remove(d);
+            return d;
+        } else {
+            return null;
+        }
     }
 
     public void pushThreadToMainPacket(byte[] bytes){
@@ -96,9 +100,13 @@ public class JRakLibServer extends Thread{
     }
 
     public byte[] readThreadToMainPacket(){
-        byte[] d = externalQueue.get(0);
-        externalQueue.remove(d);
-        return d;
+        if(!externalQueue.isEmpty()) {
+            byte[] d = externalQueue.get(0);
+            externalQueue.remove(d);
+            return d;
+        } else {
+            return null;
+        }
     }
 
     private class ShutdownHandler extends Thread{
@@ -110,8 +118,9 @@ public class JRakLibServer extends Thread{
     }
 
     public void run(){
+        setName("JRakLib Thread #"+getId());
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         UDPServerSocket socket = new UDPServerSocket(logger, _interface.getPort(), _interface.getHostString());
-
+        new SessionManager(this, socket);
     }
 }

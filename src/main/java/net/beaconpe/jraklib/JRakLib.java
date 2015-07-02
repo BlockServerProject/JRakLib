@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package net.beaconpe.jraklib;
+
+import java.time.Instant;
+import java.util.regex.Pattern;
 
 /**
  * JRakLib Constants Class.
@@ -115,4 +118,28 @@ public abstract class JRakLib {
      * Leaves everything as-is and halts, other Threads can be in a post-crash condition.
      */
     public static final byte PACKET_EMERGENCY_SHUTDOWN = 0x7f;
+
+    public static void sleepUntil(long time) {
+        while (true) {
+            if (Instant.now().toEpochMilli() >= time) {
+                break;
+            }
+        }
+    }
+
+    public static String getAddressFromString(String address){
+        if(address.contains("/")){
+            return address.split(Pattern.quote("/"))[1].split(Pattern.quote(":"))[0];
+        } else {
+            return address.split(Pattern.quote(":"))[0];
+        }
+    }
+
+    public static int getPortFromString(String address){
+        if(address.contains("/")){
+            return Integer.parseInt(address.split(Pattern.quote("/"))[1].split(Pattern.quote(":"))[1]);
+        } else {
+            return Integer.parseInt(address.split(Pattern.quote(":"))[1]);
+        }
+    }
 }

@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,13 +25,15 @@ import net.beaconpe.jraklib.Binary;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Base class for ACK/NACK.
  */
 public abstract class AcknowledgePacket extends Packet{
 
-    public int[] packets;
+    public Integer[] packets;
 
     @Override
     protected void _encode() {
@@ -40,13 +42,12 @@ public abstract class AcknowledgePacket extends Packet{
         int records = 0;
 
         if(count > 0){
-            int pointer = 1;
+            int pointer = 0;
             int start = packets[0];
             int last = packets[0];
 
-            while(pointer < count){
-                pointer = pointer + 1;
-                int current = packets[pointer];
+            while(pointer + 1 < count){
+                int current = packets[pointer++];
                 int diff = current - last;
                 if(diff == 1){
                     last = current;
@@ -82,7 +83,7 @@ public abstract class AcknowledgePacket extends Packet{
     @Override
     protected void _decode() {
         int count = getShort();
-        packets = new int[count];
+        List<Integer> packets = new ArrayList<>();
         int cnt = 0;
         for(int i = 0; i < count && !feof() && cnt < 4096; i++){
             if(getByte() == 0){
@@ -93,17 +94,17 @@ public abstract class AcknowledgePacket extends Packet{
                 }
                 for(int c = start; c <= end; c++){
                     cnt = cnt + 1;
-                    packets[cnt] = c;
+                    packets.add(c);
                 }
             } else {
-                cnt = cnt + 1;
-                packets[cnt] = getLTriad();
+                packets.add(getLTriad());
             }
         }
+        this.packets = packets.stream().toArray(Integer[]::new);
     }
 
     public void clean(){
-        packets = new int[] {};
+        packets = new Integer[] {};
         super.clean();
     }
 }

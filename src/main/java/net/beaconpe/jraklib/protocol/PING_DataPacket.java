@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,10 +25,10 @@ package net.beaconpe.jraklib.protocol;
  * PING (Encapsulated, 0x00)
  */
 public class PING_DataPacket extends Packet{
-
+    public static byte ID = 0x00;
     public long pingID;
 
-    @Override
+
     public byte getID() {
         return 0x00;
     }

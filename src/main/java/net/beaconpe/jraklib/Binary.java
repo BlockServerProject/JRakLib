@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,6 +24,9 @@ package net.beaconpe.jraklib;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Binary Utility class for writing/reading.
@@ -107,7 +110,7 @@ public class Binary {
      * @return The unsigned short.
      */
     public static int readShort(byte[] bytes){
-        return ByteBuffer.wrap(bytes).getChar();
+        return ((bytes[0] << 8) & 0x0000ff00) | (bytes[1] & 0x000000ff);
     }
 
     /**
@@ -223,5 +226,22 @@ public class Binary {
 
     public static byte[] subbytes(byte[] bytes, int start){
         return subbytes(bytes, start, bytes.length - start);
+    }
+
+    public static byte[][] splitbytes(byte[] bytes, int chunkSize){
+        byte[][] splits = new byte[1024][chunkSize];
+        int chunks = 0;
+        for(int i=0;i<bytes.length;i+=chunkSize){
+            if((bytes.length - i) > chunkSize){
+                splits[chunks] = Arrays.copyOfRange(bytes, i, i + chunkSize);
+            } else {
+                splits[chunks] = Arrays.copyOfRange(bytes, i, bytes.length);
+            }
+            chunks++;
+        }
+
+        splits = Arrays.copyOf(splits, chunks);
+
+        return splits;
     }
 }

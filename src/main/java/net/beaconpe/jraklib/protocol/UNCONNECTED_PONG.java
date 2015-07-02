@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,11 +27,12 @@ import net.beaconpe.jraklib.JRakLib;
  * Packet that advertises the server to the client.
  */
 public class UNCONNECTED_PONG extends Packet{
+    public static byte ID = 0x1c;
+
     public long pingID;
     public long serverID;
     public String serverName;
 
-    @Override
     public byte getID() {
         return 0x1c;
     }
@@ -48,7 +49,7 @@ public class UNCONNECTED_PONG extends Packet{
     protected void _decode() {
         pingID = getLong();
         serverID = getLong();
-        offset = offset + 16; //magic
+        offset = offset + 15; //magic
         serverName = getString();
     }
 }

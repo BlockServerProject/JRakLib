@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,10 +27,11 @@ import net.beaconpe.jraklib.JRakLib;
  * OPEN_CONNECTION_REQUEST_1 (Not encapsulated, 0x05)
  */
 public class OPEN_CONNECTION_REQUEST_1 extends Packet{
+    public static byte ID = 0x05;
     public byte protocol = JRakLib.PROTOCOL;
     public short mtuSize;
 
-    @Override
+
     public byte getID() {
         return 0x05;
     }
@@ -44,7 +45,7 @@ public class OPEN_CONNECTION_REQUEST_1 extends Packet{
 
     @Override
     protected void _decode() {
-        offset = offset + 16; //Magic
+        offset = offset + 15; //Magic
         protocol = getByte();
         mtuSize = (short) (get().length - 18);
     }

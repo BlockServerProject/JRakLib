@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,8 +39,8 @@ public abstract class Packet {
     protected int offset = 0;
     protected int length;
     public byte[] buffer;
-    public ByteBuffer sendBuffer;
-    public int sendTime;
+    protected ByteBuffer sendBuffer;
+    public long sendTime;
 
     public abstract byte getID();
 
@@ -53,7 +53,9 @@ public abstract class Packet {
             while(len > 0){
                 bb.put(buffer[offset]);
                 len = len - 1;
-                offset = offset + 1;
+                if(len != 0) {
+                    offset = offset + 1;
+                }
             }
             return bb.array();
         }
@@ -81,9 +83,9 @@ public abstract class Packet {
 
     protected int getShort(boolean signed){
         if(signed){
-            return Binary.readShort(get(2));
+            return Binary.readSignedShort(get(2));
         } else {
-            return Binary.readUnsignedShort(get(2));
+            return Binary.readShort(get(2));
         }
     }
 
@@ -110,23 +112,23 @@ public abstract class Packet {
     }
 
     protected InetSocketAddress getAddress(){
-        byte version = getByte();
+        int version = getByte();
         if(version == 4){
             String address = ((~getByte()) & 0xff) +"."+ ((~getByte()) & 0xff) +"."+ ((~getByte()) & 0xff) +"."+ ((~getByte()) & 0xff);
-            int port = getShort();
+            int port = getShort(false);
             return new InetSocketAddress(address, port);
         } else {
             //TODO: IPv6
-            throw new UnsupportedOperationException("IPv6: Not implemented");
+            return new InetSocketAddress("0.0.0.0", 0);
         }
     }
 
     protected boolean feof(){
         try{
             byte d = buffer[offset];
-            return true;
-        } catch (ArrayIndexOutOfBoundsException e){
             return false;
+        } catch (ArrayIndexOutOfBoundsException e){
+            return true;
         }
     }
 
@@ -180,7 +182,7 @@ public abstract class Packet {
     }
 
     public void decode(){
-        offset = 1;
+        getByte();
         _decode();
     }
 

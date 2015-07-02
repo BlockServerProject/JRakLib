@@ -4,7 +4,7 @@
    This software is a port of PocketMine/RakLib <https://github.com/PocketMine/RakLib>.
    All credit goes to the PocketMine Project (http://pocketmine.net)
  
-   Copyright (C) 2015  BlockServerProject
+   Copyright (C) 2015 BlockServerProject & PocketMine team
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -27,10 +27,10 @@ import net.beaconpe.jraklib.JRakLib;
  * UNCONNECTED_PING (Not encapsulated, 0x01)
  */
 public class UNCONNECTED_PING extends Packet{
-
+    public static byte ID = 0x01;
     public long pingId;
 
-    @Override
+
     public byte getID() {
         return 0x01;
     }
