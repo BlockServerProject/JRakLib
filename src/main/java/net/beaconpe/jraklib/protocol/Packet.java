@@ -21,12 +21,9 @@
  */
 package net.beaconpe.jraklib.protocol;
 
-import com.sun.deploy.util.ArrayUtil;
 import net.beaconpe.jraklib.Binary;
 import org.apache.commons.lang3.ArrayUtils;
 
-import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.regex.Pattern;
