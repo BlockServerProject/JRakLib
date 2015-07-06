@@ -58,6 +58,15 @@ public abstract class Packet {
         }
     }
 
+    public void setBuffer(byte[] buffer, int offset){
+        this.buffer = buffer;
+        this.offset = offset;
+    }
+
+    public int getOffset(){
+        return offset;
+    }
+
     protected byte[] get(){
         return Binary.subbytes(buffer, offset);
     }

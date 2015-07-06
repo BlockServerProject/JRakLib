@@ -26,6 +26,7 @@ import net.beaconpe.jraklib.JRakLib;
 import net.beaconpe.jraklib.protocol.EncapsulatedPacket;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Handler that provides easy communication with the server.
@@ -45,9 +46,10 @@ public class ServerHandler {
     }
 
     public void sendEncapsulated(String identifier, EncapsulatedPacket packet, byte flags){
-        ByteBuffer bb = ByteBuffer.allocate(3+identifier.getBytes().length+packet.getTotalLength(true));
+        ByteBuffer bb = ByteBuffer.allocate(1024*1024*2);
         bb.put(JRakLib.PACKET_ENCAPSULATED).put((byte) identifier.getBytes().length).put(identifier.getBytes()).put(flags).put(packet.toBinary(true));
-        server.pushMainToThreadPacket(bb.array());
+        server.pushMainToThreadPacket(Arrays.copyOf(bb.array(), bb.position()));
+        bb = null;
     }
 
     public void sendRaw(String address, short port, byte[] payload){
@@ -93,6 +95,9 @@ public class ServerHandler {
 
     public boolean handlePacket(){
         byte[] packet = server.readThreadToMainPacket();
+        if(packet == null){
+            return false;
+        }
         if(packet.length > 0){
             byte id = packet[0];
             int offset = 1;

@@ -439,10 +439,11 @@ public class Session {
                 sendPacket.reliability = 0;
                 sendPacket.buffer = pk.buffer;
                 addToQueue(sendPacket);
-            } //TODO: add PING/PONG (0x00/0x03) automatic latency measure
-        } else if(state  == STATE_CONNECTED){
-            sessionManager.streamEncapsulated(this, packet);
-            //TODO: stream channels
+             //TODO: add PING/PONG (0x00/0x03) automatic latency measure
+            } else if(state  == STATE_CONNECTED) {
+                sessionManager.streamEncapsulated(this, packet);
+                //TODO: stream channels
+            }
         } else {
             preJoinQueue.add(packet);
         }

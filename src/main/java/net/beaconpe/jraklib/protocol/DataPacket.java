@@ -21,7 +21,6 @@
  */
 package net.beaconpe.jraklib.protocol;
 
-import com.sun.xml.internal.bind.v2.runtime.unmarshaller.XsiNilLoader;
 import net.beaconpe.jraklib.Binary;
 
 import java.util.ArrayList;

@@ -24,6 +24,7 @@ package net.beaconpe.jraklib.protocol;
 import net.beaconpe.jraklib.Binary;
 
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 /**
  * Represents an encapsulated packet inside a CustomPacket
@@ -110,7 +111,7 @@ public class EncapsulatedPacket {
 
     public byte[] toBinary(boolean internal){
         int offset = 0;
-        ByteBuffer bb = ByteBuffer.allocate(getTotalLength(internal));
+        ByteBuffer bb = ByteBuffer.allocate(1024 * 1024 * 32);
         bb.put((byte) ((byte) (reliability << 5) | (hasSplit ? 0b00010000 : 0)));
         if(internal){
             bb.put(Binary.writeInt(buffer.length));
@@ -136,8 +137,9 @@ public class EncapsulatedPacket {
         }
 
         bb.put(buffer);
-
-        return bb.array();
+        byte[] data = Arrays.copyOf(bb.array(), bb.position());
+        bb = null;
+        return data;
     }
 
     public byte[] toBinary(){
