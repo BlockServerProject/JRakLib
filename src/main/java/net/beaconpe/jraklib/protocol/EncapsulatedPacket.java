@@ -43,6 +43,8 @@ public class EncapsulatedPacket {
     public boolean needACK = false;
     public int identifierACK = -1;
 
+    public int bufferLength;
+
     protected int offset;
 
     public static EncapsulatedPacket fromBinary(byte[] binary){
@@ -55,6 +57,7 @@ public class EncapsulatedPacket {
 
     public static EncapsulatedPacket fromBinary(byte[] binary, boolean internal, int offset){
         EncapsulatedPacket packet = new EncapsulatedPacket();
+        packet.bufferLength = binary.length;
         byte flags = binary[0];
         packet.reliability = (byte) ((flags & 0b11100000) >> 5);
         packet.hasSplit = (flags & 0b00010000) > 0;
@@ -111,7 +114,7 @@ public class EncapsulatedPacket {
 
     public byte[] toBinary(boolean internal){
         int offset = 0;
-        ByteBuffer bb = ByteBuffer.allocate(1024 * 1024 * 32);
+        ByteBuffer bb = ByteBuffer.allocate(64 * 64 * 64);
         bb.put((byte) ((byte) (reliability << 5) | (hasSplit ? 0b00010000 : 0)));
         if(internal){
             bb.put(Binary.writeInt(buffer.length));
@@ -138,6 +141,7 @@ public class EncapsulatedPacket {
 
         bb.put(buffer);
         byte[] data = Arrays.copyOf(bb.array(), bb.position());
+        bufferLength = data.length;
         bb = null;
         return data;
     }

@@ -330,7 +330,7 @@ public class Session {
 
         if(splitPackets.get(packet.splitID).values().size() == packet.splitCount){
             EncapsulatedPacket pk = new EncapsulatedPacket();
-            ByteBuffer bb = ByteBuffer.allocate(1024*1024);
+            ByteBuffer bb = ByteBuffer.allocate(64 * 64 * 64);
             for(int i = 0; i < packet.splitCount; i++){
                 bb.put(splitPackets.get(packet.splitID).get(i).buffer);
             }

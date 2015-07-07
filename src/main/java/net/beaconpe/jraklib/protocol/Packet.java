@@ -181,7 +181,7 @@ public abstract class Packet {
     protected abstract void _decode();
 
     public void encode(){
-        sendBuffer = ByteBuffer.allocate(1024*1024);
+        sendBuffer = ByteBuffer.allocate(64 * 64 * 64);
         putByte(getID());
         _encode();
         buffer = ArrayUtils.subarray(sendBuffer.array(), 0, sendBuffer.position());
