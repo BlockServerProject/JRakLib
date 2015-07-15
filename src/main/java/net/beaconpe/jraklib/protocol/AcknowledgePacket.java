@@ -22,10 +22,10 @@
 package net.beaconpe.jraklib.protocol;
 
 import net.beaconpe.jraklib.Binary;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -77,7 +77,7 @@ public abstract class AcknowledgePacket extends Packet{
             records = records + 1;
         }
         putShort((short) records);
-        put(ArrayUtils.subarray(payload.array(), 0, payload.position()));
+        put(Arrays.copyOf(payload.array(), payload.position()));
     }
 
     @Override

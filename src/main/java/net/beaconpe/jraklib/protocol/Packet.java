@@ -22,10 +22,10 @@
 package net.beaconpe.jraklib.protocol;
 
 import net.beaconpe.jraklib.Binary;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
@@ -184,7 +184,7 @@ public abstract class Packet {
         sendBuffer = ByteBuffer.allocate(64 * 64 * 64);
         putByte(getID());
         _encode();
-        buffer = ArrayUtils.subarray(sendBuffer.array(), 0, sendBuffer.position());
+        buffer = Arrays.copyOf(sendBuffer.array(), sendBuffer.position());
     }
 
     public void decode(){

@@ -25,16 +25,12 @@ package net.beaconpe.jraklib.server;
 import net.beaconpe.jraklib.Binary;
 import net.beaconpe.jraklib.JRakLib;
 import net.beaconpe.jraklib.protocol.*;
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -334,7 +330,7 @@ public class Session {
             for(int i = 0; i < packet.splitCount; i++){
                 bb.put(splitPackets.get(packet.splitID).get(i).buffer);
             }
-            pk.buffer = ArrayUtils.subarray(bb.array(), 0, bb.position());
+            pk.buffer = Arrays.copyOf(bb.array(), bb.position());
             bb = null;
 
             pk.length = pk.buffer.length;

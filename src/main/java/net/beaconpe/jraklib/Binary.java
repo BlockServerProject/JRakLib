@@ -21,7 +21,6 @@
  */
 package net.beaconpe.jraklib;
 
-import org.apache.commons.lang3.ArrayUtils;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

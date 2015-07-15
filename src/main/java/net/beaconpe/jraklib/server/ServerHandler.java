@@ -46,7 +46,7 @@ public class ServerHandler {
     }
 
     public void sendEncapsulated(String identifier, EncapsulatedPacket packet, byte flags){
-        ByteBuffer bb = ByteBuffer.allocate(packet.bufferLength);
+        ByteBuffer bb = ByteBuffer.allocate(3+identifier.getBytes().length+packet.getTotalLength(true));
         bb.put(JRakLib.PACKET_ENCAPSULATED).put((byte) identifier.getBytes().length).put(identifier.getBytes()).put(flags).put(packet.toBinary(true));
         server.pushMainToThreadPacket(Arrays.copyOf(bb.array(), bb.position()));
         bb = null;

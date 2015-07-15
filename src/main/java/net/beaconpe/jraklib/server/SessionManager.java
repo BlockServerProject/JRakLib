@@ -347,7 +347,7 @@ public class SessionManager{
             if(timeout == -1){
                 _final = Long.MAX_VALUE;
             } else {
-                getLogger().notice("[JRakLib Thread #"+Thread.currentThread().getId()+"] Blocked "+address+" for "+timeout+" seconds");
+                getLogger().notice("[JRakLib Thread #"+Thread.currentThread().getId()+"] Blocked "+address+" for "+timeout+" milliseconds");
             }
             block.put(address, _final);
         } else if(block.get(address) < _final){
