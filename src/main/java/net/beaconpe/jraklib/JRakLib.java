@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
  * JRakLib Constants Class.
  */
 public abstract class JRakLib {
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "1.0.1";
     public static final byte PROTOCOL = 6;
     public static final byte[] MAGIC = new byte[]{
             0x00, (byte) 0xff, (byte) 0xff, 0x00,
