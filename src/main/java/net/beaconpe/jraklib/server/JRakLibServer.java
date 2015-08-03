@@ -25,7 +25,9 @@ import net.beaconpe.jraklib.Logger;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 /**
  * JRakLib server.
@@ -36,8 +38,8 @@ public class JRakLibServer extends Thread{
     protected Logger logger;
     protected boolean shutdown = false;
 
-    protected List<byte[]> externalQueue;
-    protected List<byte[]> internalQueue;
+    protected Deque<byte[]> externalQueue;
+    protected Deque<byte[]> internalQueue;
 
     public JRakLibServer(Logger logger, int port, String _interface){
         if(port < 1 || port > 65536){
@@ -47,8 +49,8 @@ public class JRakLibServer extends Thread{
         this.logger = logger;
         this.shutdown = false;
 
-        externalQueue = new ArrayList<>();
-        internalQueue = new ArrayList<>();
+        externalQueue = new ConcurrentLinkedDeque<>();
+        internalQueue = new ConcurrentLinkedDeque<>();
 
         start();
     }
@@ -73,40 +75,34 @@ public class JRakLibServer extends Thread{
         return logger;
     }
 
-    public List<byte[]> getExternalQueue(){
+    public Deque<byte[]> getExternalQueue(){
         return externalQueue;
     }
 
-    public List<byte[]> getInternalQueue(){
+    public Deque<byte[]> getInternalQueue(){
         return internalQueue;
     }
 
     public void pushMainToThreadPacket(byte[] bytes){
-        internalQueue.add(bytes);
+        internalQueue.addLast(bytes);
     }
 
     public byte[] readMainToThreadPacket(){
         if(!internalQueue.isEmpty()) {
-            byte[] d = internalQueue.get(0);
-            internalQueue.remove(d);
-            return d;
-        } else {
-            return null;
+            return internalQueue.pop();
         }
+        return null;
     }
 
     public void pushThreadToMainPacket(byte[] bytes){
-        externalQueue.add(bytes);
+        externalQueue.addLast(bytes);
     }
 
     public byte[] readThreadToMainPacket(){
         if(!externalQueue.isEmpty()) {
-            byte[] d = externalQueue.get(0);
-            externalQueue.remove(d);
-            return d;
-        } else {
-            return null;
+            externalQueue.pop();
         }
+        return null;
     }
 
     private class ShutdownHandler extends Thread{
