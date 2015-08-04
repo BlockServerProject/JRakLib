@@ -24,10 +24,8 @@ package net.beaconpe.jraklib.server;
 import net.beaconpe.jraklib.Logger;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * JRakLib server.
@@ -38,8 +36,8 @@ public class JRakLibServer extends Thread{
     protected Logger logger;
     protected boolean shutdown = false;
 
-    protected Deque<byte[]> externalQueue;
-    protected Deque<byte[]> internalQueue;
+    protected List<byte[]> externalQueue;
+    protected List<byte[]> internalQueue;
 
     public JRakLibServer(Logger logger, int port, String _interface){
         if(port < 1 || port > 65536){
@@ -49,8 +47,8 @@ public class JRakLibServer extends Thread{
         this.logger = logger;
         this.shutdown = false;
 
-        externalQueue = new ConcurrentLinkedDeque<>();
-        internalQueue = new ConcurrentLinkedDeque<>();
+        externalQueue = new LinkedList<>();
+        internalQueue = new LinkedList<>();
 
         start();
     }
@@ -75,32 +73,36 @@ public class JRakLibServer extends Thread{
         return logger;
     }
 
-    public Deque<byte[]> getExternalQueue(){
+    public List<byte[]> getExternalQueue(){
         return externalQueue;
     }
 
-    public Deque<byte[]> getInternalQueue(){
+    public List<byte[]> getInternalQueue(){
         return internalQueue;
     }
 
     public void pushMainToThreadPacket(byte[] bytes){
-        internalQueue.addLast(bytes);
+        internalQueue.add(0, bytes);
     }
 
     public byte[] readMainToThreadPacket(){
         if(!internalQueue.isEmpty()) {
-            return internalQueue.pop();
+            byte[] data = internalQueue.get(internalQueue.size() - 1);
+            internalQueue.remove(data);
+            return data;
         }
         return null;
     }
 
     public void pushThreadToMainPacket(byte[] bytes){
-        externalQueue.addLast(bytes);
+        externalQueue.add(0, bytes);
     }
 
     public byte[] readThreadToMainPacket(){
         if(!externalQueue.isEmpty()) {
-            externalQueue.pop();
+            byte[] data = externalQueue.get(externalQueue.size() - 1);
+            externalQueue.remove(data);
+            return data;
         }
         return null;
     }
