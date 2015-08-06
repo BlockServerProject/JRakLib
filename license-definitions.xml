@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--
+    JRakLib is not affiliated with Jenkins Software LLC or RakNet.
+    This software is a port of RakLib https://github.com/PocketMine/RakLib.
+
+    This file is part of JRakLib.
+
+    JRakLib is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    JRakLib is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public License
+    along with JRakLib.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<additionalHeaders>
+    <javadoc_style>
+        <firstLine>/**EOL * JRakLib is not affiliated with Jenkins Software LLC or RakNet.EOL * This software is a port of RakLib https://github.com/PocketMine/RakLib.EOL</firstLine>
+        <beforeEachLine> * </beforeEachLine>
+        <endLine> */</endLine>
+        <!--<afterEachLine></afterEachLine>-->
+        <!--skipLine></skipLine-->
+        <firstLineDetectionPattern>(\s|\t)*/\*.*$</firstLineDetectionPattern>
+        <lastLineDetectionPattern>.*\*/(\s|\t)*$</lastLineDetectionPattern>
+        <allowBlankLines>false</allowBlankLines>
+        <isMultiline>true</isMultiline>
+        <padLines>false</padLines>
+    </javadoc_style>
+    <xml_style>
+        <firstLine><![CDATA[<!--EOL    JRakLib is not affiliated with Jenkins Software LLC or RakNet.EOL    This software is a port of RakLib https://github.com/PocketMine/RakLib.EOL]]></firstLine>
+        <beforeEachLine>    </beforeEachLine>
+        <endLine><![CDATA[-->]]></endLine>
+        <!--<afterEachLine></afterEachLine>-->
+        <skipLine><![CDATA[^<\?xml.*>$]]></skipLine>
+        <firstLineDetectionPattern><![CDATA[(\s|\t)*<!--.*$]]></firstLineDetectionPattern>
+        <lastLineDetectionPattern><![CDATA[.*-->(\s|\t)*$]]></lastLineDetectionPattern>
+        <allowBlankLines>false</allowBlankLines>
+        <isMultiline>true</isMultiline>
+        <padLines>false</padLines>
+    </xml_style>
+</additionalHeaders>
