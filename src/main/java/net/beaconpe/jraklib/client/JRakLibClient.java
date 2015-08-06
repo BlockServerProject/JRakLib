@@ -28,12 +28,14 @@ import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Represents a JRakLib Client.
  * @author jython234
  */
 public class JRakLibClient extends Thread{
+    private static long clientID = new Random(System.currentTimeMillis()).nextLong();
     private static long startTime = -1;
     protected InetSocketAddress serverEndpoint;
 
@@ -43,6 +45,12 @@ public class JRakLibClient extends Thread{
     protected List<byte[]> externalQueue;
     protected List<byte[]> internalQueue;
 
+    /**
+     * Creates a new JRakLibClient and connects right away.
+     * @param logger Logger implementation for the client.
+     * @param serverIP The server IP address.
+     * @param serverPort The server's port.
+     */
     public JRakLibClient(Logger logger, String serverIP, int serverPort){
         if(serverPort < 1 || serverPort > 65536){
             throw new IllegalArgumentException("Invalid port range.");
@@ -104,6 +112,10 @@ public class JRakLibClient extends Thread{
         return serverEndpoint.getHostString();
     }
 
+    public InetSocketAddress getServerEndpoint() {
+        return serverEndpoint;
+    }
+
     public Logger getLogger(){
         return logger;
     }
@@ -140,6 +152,25 @@ public class JRakLibClient extends Thread{
             return data;
         }
         return null;
+    }
+
+    /**
+     * Regenerates the static clientID.
+     */
+    public static void regenerateClientID(){
+        clientID = new Random().nextLong();
+    }
+
+    /**
+     * Regenerates the static clientID with the specified seed.
+     * @param seed The seed to generate the clientID.
+     */
+    public static void regenerateClientID(long seed){
+        clientID = new Random(seed).nextLong();
+    }
+
+    public long getTimeSinceStart() {
+        return startTime;
     }
 
     private class ShutdownHandler extends Thread {
