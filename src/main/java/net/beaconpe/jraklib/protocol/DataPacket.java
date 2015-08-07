@@ -61,7 +61,7 @@ public abstract class DataPacket extends Packet{
 
         while(!feof()){
             int offset = 0;
-            byte[] data = Binary.subbytes(buffer, this.offset + 1);
+            byte[] data = Binary.subbytes(buffer, this.offset);
             if(data.length < 1){
                 break;
             }

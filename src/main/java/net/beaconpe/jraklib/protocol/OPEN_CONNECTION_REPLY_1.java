@@ -44,7 +44,7 @@ public class OPEN_CONNECTION_REPLY_1 extends Packet{
 
     @Override
     protected void _decode() {
-        offset = offset + 15; //Magic
+        offset = offset + 16; //Magic
         serverID = getLong();
         getByte(); //security
         mtuSize = getShort();
