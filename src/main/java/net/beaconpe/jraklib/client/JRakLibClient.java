@@ -169,6 +169,10 @@ public class JRakLibClient extends Thread{
         clientID = new Random(seed).nextLong();
     }
 
+    public static long getClientID(){
+        return clientID;
+    }
+
     public long getTimeSinceStart() {
         return startTime;
     }
@@ -213,5 +217,6 @@ public class JRakLibClient extends Thread{
         setName("JRakLib Client Thread #"+getId());
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         UDPClientSocket socket = new UDPClientSocket(logger);
+        new ConnectionManager(this, socket);
     }
 }

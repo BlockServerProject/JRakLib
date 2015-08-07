@@ -213,12 +213,11 @@ public class Binary {
     }
 
     public static byte[] subbytes(byte[] bytes, int start, int length){
-        ByteBuffer bb = ByteBuffer.allocate(length);
-        int startlength = start + length;
-        for(int i = start; i < startlength; i++){
-            bb.put(bytes[i]);
-        }
-        return bb.array();
+        ByteBuffer bb = ByteBuffer.wrap(bytes);
+        bb.position(start);
+        byte[] bytes2 = new byte[length];
+        bb.get(bytes2);
+        return bytes2;
     }
 
     public static byte[] subbytes(byte[] bytes, int start){

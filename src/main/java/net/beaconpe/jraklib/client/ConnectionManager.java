@@ -16,6 +16,7 @@ import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -49,18 +50,17 @@ public class ConnectionManager {
         this.socket = socket;
         registerPackets();
 
-        connection = new Connection();
         try {
-            if(connect(1447, 4)){
-                connection.connected = true;
-            } else {
+            if(!connect(1447, 4)){
                 getLogger().notice("Failed to connect to "+client.getServerEndpoint()+": no response.");
                 client.pushMainToThreadPacket(new byte[] {JRakLib.PACKET_SHUTDOWN});
+            } else {
+                run();
             }
         } catch (IOException e) {
-            getLogger().emergency("*** FAILED TO CONNECT TO "+client.getServerEndpoint()+": IOException: "+e.getMessage());
+            getLogger().emergency("*** FAILED TO CONNECT TO " + client.getServerEndpoint() + ": IOException: " + e.getMessage());
             e.printStackTrace();
-            client.pushMainToThreadPacket(new byte[] {JRakLib.PACKET_EMERGENCY_SHUTDOWN});
+            client.pushMainToThreadPacket(new byte[]{JRakLib.PACKET_EMERGENCY_SHUTDOWN});
         }
     }
 
@@ -74,7 +74,10 @@ public class ConnectionManager {
 
             DatagramPacket response = socket.readPacketBlocking(500);
             if(response != null && response.getData()[0] == OPEN_CONNECTION_REPLY_1.ID){
-                connection.handlePacket(response.getData());
+                connection = new Connection(this, payloadSize);
+                Packet packet = getPacketFromPool(response.getData()[0]);
+                packet.buffer = response.getData();
+                connection.handlePacket(packet);
                 return true;
             }
         }
@@ -144,7 +147,7 @@ public class ConnectionManager {
             Packet pkt = getPacketFromPool(packet.getData()[0]);
             if(pkt != null){
                 pkt.buffer = packet.getData();
-                //getSession(getAddressFromString(source.toString()), packet.getPort()).handlePacket(pkt);
+                connection.handlePacket(pkt);
                 return true;
             } else if (packet.getData() != null){
                 streamRaw(source, packet.getData());
@@ -201,7 +204,7 @@ public class ConnectionManager {
 
     protected void streamOpen(long serverId){
         String identifier = client.getServerIP() + ":" + client.getServerPort();
-        ByteBuffer bb = ByteBuffer.allocate(9 + identifier.getBytes().length);
+        ByteBuffer bb = ByteBuffer.allocate(10 + identifier.getBytes().length);
         bb.put(JRakLib.PACKET_OPEN_SESSION).put((byte) identifier.getBytes().length).put(identifier.getBytes()).put(Binary.writeLong(serverId));
         client.pushThreadToMainPacket(bb.array());
     }
@@ -324,4 +327,11 @@ public class ConnectionManager {
         registerPacket(ACK.ID, ACK.class);
     }
 
+    public JRakLibClient getClient() {
+        return client;
+    }
+
+    public UDPClientSocket getSocket() {
+        return socket;
+    }
 }

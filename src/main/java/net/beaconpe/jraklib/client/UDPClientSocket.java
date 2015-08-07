@@ -37,8 +37,6 @@ public class UDPClientSocket implements Closeable{
     private Logger logger;
     private DatagramSocket socket;
 
-    private boolean isReading = false;
-
     /**
      * Create a new UDP Client socket with the specified logger.
      * @param logger The logger used in case the socket was unable to be created.
@@ -82,12 +80,7 @@ public class UDPClientSocket implements Closeable{
     public DatagramPacket readPacket() throws IOException {
         DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
         try {
-            if(isReading()){
-                throw new ConcurrentModificationException("Can't read a packet while already reading!");
-            }
-            setReading(true);
             socket.receive(dp);
-            setReading(false);
             dp.setData(Arrays.copyOf(dp.getData(), dp.getLength()));
             return dp;
         } catch (SocketTimeoutException e) {
@@ -104,14 +97,9 @@ public class UDPClientSocket implements Closeable{
     public DatagramPacket readPacketBlocking(int blockFor) throws IOException{
         DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
         try {
-            if(isReading()){
-                throw new ConcurrentModificationException("Can't read a packet while already reading!");
-            }
-            setReading(true);
             socket.setSoTimeout(blockFor);
             socket.receive(dp);
             socket.setSoTimeout(1);
-            setReading(false);
             dp.setData(Arrays.copyOf(dp.getData(), dp.getLength()));
             return dp;
         } catch (SocketTimeoutException e) {
@@ -146,17 +134,5 @@ public class UDPClientSocket implements Closeable{
      */
     public void setRecvBuffer(int size) throws SocketException {
         socket.setReceiveBufferSize(size);
-    }
-
-    private synchronized boolean isReading(){
-        synchronized ((Boolean) isReading){
-            return isReading;
-        }
-    }
-
-    private synchronized void setReading(boolean reading){
-        synchronized ((Boolean) isReading){
-            isReading = reading;
-        }
     }
 }
