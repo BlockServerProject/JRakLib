@@ -47,7 +47,7 @@ public class UNCONNECTED_PONG extends Packet{
     protected void _decode() {
         pingID = getLong();
         serverID = getLong();
-        offset = offset + 15; //magic
+        offset = offset + 16; //magic
         serverName = getString();
     }
 }

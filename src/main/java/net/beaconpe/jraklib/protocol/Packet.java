@@ -21,7 +21,9 @@ package net.beaconpe.jraklib.protocol;
 
 import net.beaconpe.jraklib.Binary;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.regex.Pattern;
@@ -44,15 +46,21 @@ public abstract class Packet {
             offset = buffer.length - 1;
             return new byte[] {};
         } else {
+            /*
             ByteBuffer bb = ByteBuffer.allocate(len);
-            while(len > 0){
+            while(len > 0 && !feof()){
+                offset = offset + 1;
+                if(buffer.length == offset){
+                    offset = offset - 1;
+                }
                 bb.put(buffer[offset]);
                 len = len - 1;
-                if(len != 0) {
-                    offset = offset + 1;
-                }
             }
             return bb.array();
+            */
+            byte[] bytes = Binary.subbytes(buffer, offset, len);
+            offset = offset + bytes.length;
+            return bytes;
         }
     }
 
@@ -102,8 +110,9 @@ public abstract class Packet {
     }
 
     protected int getByte(boolean signed){
+        int b = Binary.readByte(buffer[offset], signed);
         offset = offset + 1;
-        return Binary.readByte(buffer[offset], signed);
+        return b;
     }
 
     protected byte getByte(){
@@ -166,6 +175,13 @@ public abstract class Packet {
     }
 
     protected void putAddress(String addr, int port, byte version){
+        if(!addr.contains(Pattern.quote("."))){
+            try {
+                addr = InetAddress.getByName(addr).getHostAddress();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
         putByte(version);
         if(version == 4){
             for (String section : addr.split(Pattern.quote("."))){
