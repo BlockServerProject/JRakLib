@@ -69,7 +69,7 @@ public class Session {
 
     private Map<Integer, DataPacket> recoveryQueue = new ConcurrentHashMap<>();
 
-    private Map<Short, Map<Integer, EncapsulatedPacket>> splitPackets = new ConcurrentHashMap<>();
+    private Map<Short, EncapsulatedPacket[]> splitPackets = new ConcurrentHashMap<>();
 
     private Map<Integer, Map<Integer, Integer>> needACK = new ConcurrentHashMap<>();
 
@@ -265,7 +265,7 @@ public class Session {
     }
 
     public void addEncapsulatedToQueue(EncapsulatedPacket packet, byte flags) throws IOException {
-        if((packet.needACK = (flags & JRakLib.FLAG_NEED_ACK) > 0) == true){
+        if((packet.needACK = (flags & JRakLib.FLAG_NEED_ACK) > 0)){
             needACK.put(packet.identifierACK, new ConcurrentHashMap<>());
         }
 
@@ -313,23 +313,21 @@ public class Session {
         }
 
         if(!splitPackets.containsKey(packet.splitID)){
-            Map<Integer, EncapsulatedPacket> map = new ConcurrentHashMap<>();
-            map.put(packet.splitIndex, packet);
-            splitPackets.put(packet.splitID, map);
+            EncapsulatedPacket[] array = new EncapsulatedPacket[packet.splitCount];
+            array[packet.splitIndex] = packet;
+            splitPackets.put(packet.splitID, array);
         } else {
-            Map<Integer, EncapsulatedPacket> map = splitPackets.get(packet.splitID);
-            map.put(packet.splitIndex, packet);
-            splitPackets.put(packet.splitID, map);
+            splitPackets.get(packet.splitID)[packet.splitIndex] = packet;
         }
 
-        if(splitPackets.get(packet.splitID).values().size() == packet.splitCount){
+        if(splitPackets.get(packet.splitID).length == packet.splitCount){
             EncapsulatedPacket pk = new EncapsulatedPacket();
             ByteBuffer bb = ByteBuffer.allocate(64 * 64 * 64);
+            EncapsulatedPacket[] encapsulatedPackets = splitPackets.get(packet.splitID);
             for(int i = 0; i < packet.splitCount; i++){
-                bb.put(splitPackets.get(packet.splitID).get(i).buffer);
+                bb.put(encapsulatedPackets[i].buffer);
             }
             pk.buffer = Arrays.copyOf(bb.array(), bb.position());
-            bb = null;
 
             pk.length = pk.buffer.length;
             splitPackets.remove(packet.splitID);
