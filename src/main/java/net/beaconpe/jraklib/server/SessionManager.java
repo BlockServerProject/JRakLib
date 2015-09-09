@@ -92,7 +92,7 @@ public class SessionManager{
         try {
             tickProcessor();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            streamException(e);
         }
     }
 
@@ -247,6 +247,12 @@ public class SessionManager{
     protected void streamOption(String name, String value){
         ByteBuffer bb = ByteBuffer.allocate(2+name.getBytes().length+value.getBytes().length);
         bb.put(JRakLib.PACKET_SET_OPTION).put((byte) name.getBytes().length).put(name.getBytes()).put(value.getBytes());
+        server.pushThreadToMainPacket(bb.array());
+    }
+
+    protected void streamException(Exception e) {
+        ByteBuffer bb = ByteBuffer.allocate(5+e.getMessage().getBytes().length+e.getClass().getName().getBytes().length);
+        bb.put(JRakLib.PACKET_EXCEPTION_CAUGHT).put((byte) e.getMessage().getBytes().length).put(e.getMessage().getBytes()).put(Binary.writeUnsignedShort(e.getClass().getName().getBytes().length)).put(e.getClass().getName().getBytes());
         server.pushThreadToMainPacket(bb.array());
     }
 

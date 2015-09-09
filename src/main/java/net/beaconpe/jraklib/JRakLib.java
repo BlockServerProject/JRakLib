@@ -26,8 +26,8 @@ import java.util.regex.Pattern;
  * JRakLib Constants Class.
  */
 public abstract class JRakLib {
-    public static final String VERSION = "1.1-SNAPSHOT";
-    public static final byte PROTOCOL = 6;
+    public static final String VERSION = "1.1.1-SNAPSHOT";
+    public static final byte PROTOCOL = 7;
     public static final byte[] MAGIC = new byte[]{
             0x00, (byte) 0xff, (byte) 0xff, 0x00,
             (byte) 0xfe, (byte) 0xfe, (byte) 0xfe, (byte) 0xfe,
@@ -116,6 +116,15 @@ public abstract class JRakLib {
      * Leaves everything as-is and halts, other Threads can be in a post-crash condition.
      */
     public static final byte PACKET_EMERGENCY_SHUTDOWN = 0x7f;
+
+    /**
+     * RAW payload:
+     * byte (message length)
+     * byte[] message
+     * ushort (class length)
+     * byte[] class message
+     */
+    public static final byte PACKET_EXCEPTION_CAUGHT = 0x7d;
 
     public static void sleepUntil(long time) {
         while (true) {

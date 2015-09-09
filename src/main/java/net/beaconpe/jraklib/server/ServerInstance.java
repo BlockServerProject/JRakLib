@@ -36,5 +36,7 @@ public interface ServerInstance {
 
     void notifyACK(String identifier, int identifierACK);
 
+    void exceptionCaught(String clazz, String message);
+
     void handleOption(String option, String value);
 }

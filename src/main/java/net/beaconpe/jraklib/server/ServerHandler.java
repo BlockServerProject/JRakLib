@@ -148,6 +148,13 @@ public class ServerHandler {
                 offset += len;
                 int identifierACK = Binary.readInt(Binary.subbytes(packet, offset, 4));
                 instance.notifyACK(identifier, identifierACK);
+            } else if(id == JRakLib.PACKET_EXCEPTION_CAUGHT){
+                int len = packet[offset++];
+                String message = new String(Binary.subbytes(packet, offset, len));
+                offset += len;
+                len = Binary.readShort(Binary.subbytes(packet, offset, 2));
+                String className = new String(Binary.subbytes(packet, offset, len));
+                instance.exceptionCaught(className, message);
             }
             return true;
         }
