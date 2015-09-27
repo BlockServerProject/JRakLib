@@ -69,7 +69,7 @@ public class EncapsulatedPacket
             offset = 9;
         } else
         {
-            length = Binary.readShort(Binary.subbytes(binary, 1, 2)) / 8;
+            length = (int) Math.ceil(Binary.readShort(Binary.subbytes(binary, 1, 2)) / 8.0);
             offset = 3;
             packet.identifierACK = -1;
         }
