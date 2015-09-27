@@ -19,141 +19,170 @@
  */
 package net.beaconpe.jraklib.server;
 
+import io.netty.buffer.ByteBuf;
+import static io.netty.buffer.Unpooled.buffer;
+import static io.netty.buffer.Unpooled.wrappedBuffer;
 import net.beaconpe.jraklib.Binary;
 import net.beaconpe.jraklib.JRakLib;
 import net.beaconpe.jraklib.protocol.EncapsulatedPacket;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
 /**
  * Handler that provides easy communication with the server.
  */
-public class ServerHandler {
+public class ServerHandler
+{
+
     protected JRakLibServer server;
     protected ServerInstance instance;
 
-    public ServerHandler(JRakLibServer server, ServerInstance instance){
+    public ServerHandler(JRakLibServer server, ServerInstance instance)
+    {
         this.server = server;
         this.instance = instance;
     }
 
-    public void sendEncapsulated(String identifier, EncapsulatedPacket packet){
+    public void sendEncapsulated(String identifier, EncapsulatedPacket packet)
+    {
         byte flags = JRakLib.PRIORITY_NORMAL;
         sendEncapsulated(identifier, packet, flags);
     }
 
-    public void sendEncapsulated(String identifier, EncapsulatedPacket packet, byte flags){
-        ByteBuffer bb = ByteBuffer.allocate(3+identifier.getBytes().length+packet.getTotalLength(true));
-        bb.put(JRakLib.PACKET_ENCAPSULATED).put((byte) identifier.getBytes().length).put(identifier.getBytes()).put(flags).put(packet.toBinary(true));
-        server.pushMainToThreadPacket(Arrays.copyOf(bb.array(), bb.position()));
+    public void sendEncapsulated(String identifier, EncapsulatedPacket packet, byte flags)
+    {
+        ByteBuf bb = buffer(3 + identifier.getBytes().length + packet.getTotalLength(true));
+        bb.writeByte(JRakLib.PACKET_ENCAPSULATED).writeByte((byte) identifier.getBytes().length).writeBytes(identifier.getBytes()).writeByte(flags).writeBytes(packet.toBinary(true));
+        server.pushMainToThreadPacket(bb.copy());
         bb = null;
     }
 
-    public void sendRaw(String address, short port, byte[] payload){
-        ByteBuffer bb = ByteBuffer.allocate(4+address.getBytes().length+payload.length);
-        bb.put(JRakLib.PACKET_RAW).put((byte) address.getBytes().length).put(address.getBytes()).put(Binary.writeShort(port)).put(payload);
-        server.pushMainToThreadPacket(bb.array());
+    public void sendRaw(String address, short port, byte[] payload)
+    {
+        ByteBuf bb = buffer(4 + address.getBytes().length + payload.length);
+        bb.writeByte(JRakLib.PACKET_RAW).writeByte((byte) address.getBytes().length).writeBytes(address.getBytes()).writeBytes(Binary.writeShort(port)).writeBytes(payload);
+        server.pushMainToThreadPacket(bb);
     }
 
-    public void closeSession(String identifier, String reason){
-        ByteBuffer bb = ByteBuffer.allocate(3+identifier.getBytes().length+reason.getBytes().length);
-        bb.put(JRakLib.PACKET_CLOSE_SESSION).put((byte) identifier.getBytes().length).put(identifier.getBytes()).put((byte) reason.getBytes().length).put(reason.getBytes());
-        server.pushMainToThreadPacket(bb.array());
+    public void closeSession(String identifier, String reason)
+    {
+        ByteBuf bb = buffer(3 + identifier.getBytes().length + reason.getBytes().length);
+        bb.writeByte(JRakLib.PACKET_CLOSE_SESSION).writeByte((byte) identifier.getBytes().length).writeBytes(identifier.getBytes()).writeByte((byte) reason.getBytes().length).writeBytes(reason.getBytes());
+        server.pushMainToThreadPacket(bb);
     }
 
-    public void sendOption(String name, String value){
-        ByteBuffer bb = ByteBuffer.allocate(2+name.getBytes().length+value.getBytes().length);
-        bb.put(JRakLib.PACKET_SET_OPTION).put((byte) name.getBytes().length).put(name.getBytes()).put(value.getBytes());
-        server.pushMainToThreadPacket(bb.array());
+    public void sendOption(String name, String value)
+    {
+        ByteBuf bb = buffer(2 + name.getBytes().length + value.getBytes().length);
+        bb.writeByte(JRakLib.PACKET_SET_OPTION).writeByte(name.getBytes().length).writeBytes(name.getBytes()).writeBytes(value.getBytes());
+        server.pushMainToThreadPacket(bb);
     }
 
-    public void blockAddress(String address, int timeout){
-        ByteBuffer bb = ByteBuffer.allocate(6+address.getBytes().length);
-        bb.put(JRakLib.PACKET_BLOCK_ADDRESS).put((byte) address.getBytes().length).put(address.getBytes()).put(Binary.writeInt(timeout));
-        server.pushMainToThreadPacket(bb.array());
+    public void blockAddress(String address, int timeout)
+    {
+        ByteBuf bb = buffer(6 + address.getBytes().length);
+        bb.writeByte(JRakLib.PACKET_BLOCK_ADDRESS).writeByte((byte) address.getBytes().length).writeBytes(address.getBytes()).writeBytes(Binary.writeInt(timeout));
+        server.pushMainToThreadPacket(bb);
     }
 
-    public void shutdown(){
+    public void shutdown()
+    {
         server.shutdown();
-        server.pushMainToThreadPacket(new byte[] {JRakLib.PACKET_SHUTDOWN});
+        server.pushMainToThreadPacket(wrappedBuffer(new byte[]
+        {
+            JRakLib.PACKET_SHUTDOWN
+        }));
         //TODO: Find a way to kill server after sleep.
     }
 
-    public void emergencyShutdown(){
+    public void emergencyShutdown()
+    {
         server.shutdown();
-        server.pushMainToThreadPacket(new byte[] {0x7f}); //JRakLib::PACKET_EMERGENCY_SHUTDOWN
+        server.pushMainToThreadPacket(wrappedBuffer(new byte[]
+        {
+            0x7f
+        })); //JRakLib::PACKET_EMERGENCY_SHUTDOWN
     }
 
-    protected void invalidSession(String identifier){
-        ByteBuffer bb = ByteBuffer.allocate(2+identifier.getBytes().length);
-        bb.put(JRakLib.PACKET_INVALID_SESSION).put((byte) identifier.getBytes().length).put(identifier.getBytes());
-        server.pushMainToThreadPacket(bb.array());
+    protected void invalidSession(String identifier)
+    {
+        ByteBuf bb = buffer(2 + identifier.getBytes().length);
+        bb.writeByte(JRakLib.PACKET_INVALID_SESSION).writeByte((byte) identifier.getBytes().length).writeBytes(identifier.getBytes());
+        server.pushMainToThreadPacket(bb);
     }
 
-    public boolean handlePacket(){
-        byte[] packet = server.readThreadToMainPacket();
-        if(packet == null){
+    public boolean handlePacket()
+    {
+        ByteBuf packet = server.readThreadToMainPacket();
+        if (packet == null)
+        {
             return false;
         }
-        if(packet.length > 0){
-            byte id = packet[0];
+        if (packet.readableBytes() > 0)
+        {
+            byte id = packet.getByte(0);
             int offset = 1;
-            if(id == JRakLib.PACKET_ENCAPSULATED){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            if (id == JRakLib.PACKET_ENCAPSULATED)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 offset += len;
-                byte flags = packet[offset++];
-                byte[] buffer = Binary.subbytes(packet, offset);
+                byte flags = packet.getByte(offset++);
+                ByteBuf buffer = Binary.subbytes(packet, offset);
                 instance.handleEncapsulated(identifier, EncapsulatedPacket.fromBinary(buffer, true), flags);
-            } else if(id == JRakLib.PACKET_RAW){
-                int len = packet[offset++];
-                String address = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_RAW)
+            {
+                int len = packet.getByte(offset++);
+                String address = Binary.subbytesString(packet, offset, len);
                 offset += len;
                 int port = Binary.readShort(Binary.subbytes(packet, offset, 2));
                 offset += 2;
-                byte[] payload = Binary.subbytes(packet, offset);
+                ByteBuf payload = Binary.subbytes(packet, offset);
                 instance.handleRaw(address, port, payload);
-            } else if(id == JRakLib.PACKET_SET_OPTION){
-                int len = packet[offset++];
-                String name = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_SET_OPTION)
+            {
+                int len = packet.getByte(offset++);
+                String name = Binary.subbytesString(packet, offset, len);
                 offset += len;
-                String value = new String(Binary.subbytes(packet, offset));
+                String value = Binary.subbytesString(packet, offset);
                 instance.handleOption(name, value);
-            } else if(id == JRakLib.PACKET_OPEN_SESSION){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_OPEN_SESSION)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 offset += len;
-                len = packet[offset++];
-                String address = new String(Binary.subbytes(packet, offset, len));
+                len = packet.getByte(offset++);
+                String address = Binary.subbytesString(packet, offset, len);
                 offset += len;
                 int port = Binary.readShort(Binary.subbytes(packet, offset, 2));
                 offset += 2;
                 long clientID = Binary.readLong(Binary.subbytes(packet, offset, 8));
                 instance.openSession(identifier, address, port, clientID);
-            } else if(id == JRakLib.PACKET_CLOSE_SESSION){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_CLOSE_SESSION)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 offset += len;
-                len = packet[offset++];
-                String reason = new String(Binary.subbytes(packet, offset, len));
+                len = packet.getByte(offset++);
+                String reason = Binary.subbytesString(packet, offset, len);
                 instance.closeSession(identifier, reason);
-            } else if(id == JRakLib.PACKET_INVALID_SESSION){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_INVALID_SESSION)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 instance.closeSession(identifier, "Invalid session.");
-            } else if(id == JRakLib.PACKET_ACK_NOTIFICATION){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_ACK_NOTIFICATION)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 offset += len;
                 int identifierACK = Binary.readInt(Binary.subbytes(packet, offset, 4));
                 instance.notifyACK(identifier, identifierACK);
-            } else if(id == JRakLib.PACKET_EXCEPTION_CAUGHT){
-                int len = packet[offset++];
-                String message = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_EXCEPTION_CAUGHT)
+            {
+                int len = packet.getByte(offset++);
+                String message = Binary.subbytesString(packet, offset, len);
                 offset += len;
                 len = Binary.readShort(Binary.subbytes(packet, offset, 2));
-                String className = new String(Binary.subbytes(packet, offset, len));
+                String className = Binary.subbytesString(packet, offset, len);
                 instance.exceptionCaught(className, message);
             }
             return true;

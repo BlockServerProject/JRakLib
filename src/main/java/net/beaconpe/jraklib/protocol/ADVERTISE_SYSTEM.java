@@ -22,10 +22,14 @@ package net.beaconpe.jraklib.protocol;
 /**
  * Variation of UNCONNECTED_PONG.
  */
-public class ADVERTISE_SYSTEM extends UNCONNECTED_PONG{
+public class ADVERTISE_SYSTEM extends UNCONNECTED_PONG
+{
+
     public static byte ID = 0x1d;
 
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x1d;
     }
 }

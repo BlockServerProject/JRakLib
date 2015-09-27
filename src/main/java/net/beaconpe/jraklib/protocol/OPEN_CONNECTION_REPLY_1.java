@@ -24,18 +24,22 @@ import net.beaconpe.jraklib.JRakLib;
 /**
  * OPEN_CONNECTION_REPLY_1 (Not encapsulated, 0x06)
  */
-public class OPEN_CONNECTION_REPLY_1 extends Packet{
+public class OPEN_CONNECTION_REPLY_1 extends Packet
+{
+
     public static byte ID = 0x06;
     public long serverID;
     public short mtuSize;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x06;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         put(JRakLib.MAGIC);
         putLong(serverID);
         putByte((byte) 0); //Server security
@@ -43,8 +47,9 @@ public class OPEN_CONNECTION_REPLY_1 extends Packet{
     }
 
     @Override
-    protected void _decode() {
-        offset = offset + 16; //Magic
+    protected void _decode()
+    {
+        offset = offset + JRakLib.MAGIC.length;
         serverID = getLong();
         getByte(); //security
         mtuSize = getShort();

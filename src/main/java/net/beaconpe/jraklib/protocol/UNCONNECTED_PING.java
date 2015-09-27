@@ -24,23 +24,28 @@ import net.beaconpe.jraklib.JRakLib;
 /**
  * UNCONNECTED_PING (Not encapsulated, 0x01)
  */
-public class UNCONNECTED_PING extends Packet{
+public class UNCONNECTED_PING extends Packet
+{
+
     public static byte ID = 0x01;
     public long pingId;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x01;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         putLong(pingId);
         put(JRakLib.MAGIC);
     }
 
     @Override
-    protected void _decode() {
+    protected void _decode()
+    {
         pingId = getLong();
         //magic
     }

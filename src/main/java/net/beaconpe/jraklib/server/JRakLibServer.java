@@ -19,104 +19,123 @@
  */
 package net.beaconpe.jraklib.server;
 
-import net.beaconpe.jraklib.Logger;
-
+import io.netty.buffer.ByteBuf;
 import java.net.InetSocketAddress;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.LinkedList;
+import java.util.List;
+import net.beaconpe.jraklib.Logger;
 
 /**
  * JRakLib server.
  */
-public class JRakLibServer extends Thread{
-    protected InetSocketAddress _interface;
+public class JRakLibServer extends Thread
+{
 
+    protected InetSocketAddress _interface;
     protected Logger logger;
     protected boolean shutdown = false;
+    protected List<ByteBuf> externalQueue;
+    protected List<ByteBuf> internalQueue;
 
-    protected List<byte[]> externalQueue;
-    protected List<byte[]> internalQueue;
-
-    public JRakLibServer(Logger logger, int port, String _interface){
-        if(port < 1 || port > 65536){
+    public JRakLibServer(Logger logger, int port, String _interface)
+    {
+        if (port < 1 || port > 65536)
+        {
             throw new IllegalArgumentException("Invalid port range.");
         }
         this._interface = new InetSocketAddress(_interface, port);
         this.logger = logger;
         this.shutdown = false;
-
         externalQueue = new LinkedList<>();
         internalQueue = new LinkedList<>();
-
         start();
     }
 
-    public boolean isShutdown(){
+    public boolean isShutdown()
+    {
         return shutdown == true;
     }
 
-    public void shutdown(){
+    public void shutdown()
+    {
         shutdown = true;
     }
 
-    public int getPort(){
+    public int getPort()
+    {
         return _interface.getPort();
     }
 
-    public String getInterface(){
+    public String getInterface()
+    {
         return _interface.getHostString();
     }
 
-    public Logger getLogger(){
+    public Logger getLogger()
+    {
         return logger;
     }
 
-    public List<byte[]> getExternalQueue(){
+    public List<ByteBuf> getExternalQueue()
+    {
         return externalQueue;
     }
 
-    public List<byte[]> getInternalQueue(){
+    public List<ByteBuf> getInternalQueue()
+    {
         return internalQueue;
     }
 
-    public void pushMainToThreadPacket(byte[] bytes){
+    public void pushMainToThreadPacket(ByteBuf bytes)
+    {
         internalQueue.add(0, bytes);
     }
 
-    public byte[] readMainToThreadPacket(){
-        if(!internalQueue.isEmpty()) {
-            byte[] data = internalQueue.get(internalQueue.size() - 1);
+    public ByteBuf readMainToThreadPacket()
+    {
+        if (!internalQueue.isEmpty())
+        {
+            ByteBuf data = internalQueue.get(internalQueue.size() - 1);
             internalQueue.remove(data);
             return data;
         }
         return null;
     }
 
-    public void pushThreadToMainPacket(byte[] bytes){
+    public void pushThreadToMainPacket(ByteBuf bytes)
+    {
         externalQueue.add(0, bytes);
     }
 
-    public byte[] readThreadToMainPacket(){
-        if(!externalQueue.isEmpty()) {
-            byte[] data = externalQueue.get(externalQueue.size() - 1);
+    public ByteBuf readThreadToMainPacket()
+    {
+        if (!externalQueue.isEmpty())
+        {
+            ByteBuf data = externalQueue.get(externalQueue.size() - 1);
             externalQueue.remove(data);
             return data;
         }
         return null;
     }
 
-    private class ShutdownHandler extends Thread{
-        public void run(){
-            if(shutdown != true){
-                logger.emergency("[RakLib Thread #"+getId()+"] RakLib crashed!");
+    private class ShutdownHandler extends Thread
+    {
+
+        @Override
+        public void run()
+        {
+            if (shutdown != true)
+            {
+                logger.emergency("[RakLib Thread #" + getId() + "] RakLib crashed!");
             }
         }
     }
 
-    public void run(){
-        setName("JRakLib Thread #"+getId());
+    @Override
+    public void run()
+    {
+        setName("JRakLib Thread #" + getId());
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
-        UDPServerSocket socket = new UDPServerSocket(logger, _interface.getPort(), _interface.getHostString());
-        new SessionManager(this, socket);
+        UDPServerSocket socket = new UDPServerSocket(this, _interface, _interface.getPort(), logger);
     }
 }

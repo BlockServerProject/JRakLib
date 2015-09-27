@@ -19,172 +19,198 @@
  */
 package net.beaconpe.jraklib.protocol;
 
-import net.beaconpe.jraklib.Binary;
-
-import java.net.InetAddress;
+import io.netty.buffer.ByteBuf;
 import java.net.InetSocketAddress;
+import net.beaconpe.jraklib.Binary;
+import static io.netty.buffer.Unpooled.buffer;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.regex.Pattern;
 
 /**
  * Base class for all Packets.
  */
-public abstract class Packet {
+public abstract class Packet
+{
 
     protected int offset = 0;
     protected int length;
-    public byte[] buffer;
-    protected ByteBuffer sendBuffer;
+    public ByteBuf buffer;
+    public ByteBuf sendBuffer;
     public long sendTime;
 
     public abstract byte getID();
 
-    protected byte[] get(int len){
-        if(len < 0){
-            offset = buffer.length - 1;
-            return new byte[] {};
-        } else {
-            /*
-            ByteBuffer bb = ByteBuffer.allocate(len);
-            while(len > 0 && !feof()){
-                offset = offset + 1;
-                if(buffer.length == offset){
-                    offset = offset - 1;
-                }
-                bb.put(buffer[offset]);
-                len = len - 1;
-            }
-            return bb.array();
-            */
-            byte[] bytes = Binary.subbytes(buffer, offset, len);
-            offset = offset + bytes.length;
+    protected ByteBuf get(int len)
+    {
+        if (len < 0)
+        {
+            offset = buffer.readableBytes() - 1;
+            return buffer(0);
+        } else
+        {
+            ByteBuf bytes = Binary.subbytes(buffer.copy(), offset, len);
+            offset = offset + bytes.readableBytes();
             return bytes;
         }
     }
 
-    public void setBuffer(byte[] buffer, int offset){
+    public void setBuffer(ByteBuf buffer, int offset)
+    {
         this.buffer = buffer;
         this.offset = offset;
     }
 
-    public int getOffset(){
+    public int getOffset()
+    {
         return offset;
     }
 
-    protected byte[] get(){
+    protected ByteBuf get()
+    {
         return Binary.subbytes(buffer, offset);
     }
 
-    protected long getLong(boolean signed){
-        if(signed){
+    protected long getLong(boolean signed)
+    {
+        if (signed)
+        {
             return Binary.readLong(get(8));
-        } else {
+        } else
+        {
             return Binary.readLong(get(8)) & 0xFF;
         }
     }
 
-    protected long getLong(){
+    protected long getLong()
+    {
         return getLong(true);
     }
 
-    protected int getInt(){
+    protected int getInt()
+    {
         return Binary.readInt(get(4));
     }
 
-    protected int getShort(boolean signed){
-        if(signed){
+    protected int getShort(boolean signed)
+    {
+        if (signed)
+        {
             return Binary.readSignedShort(get(2));
-        } else {
+        } else
+        {
             return Binary.readShort(get(2));
         }
     }
 
-    protected short getShort(){
+    protected short getShort()
+    {
         return (short) getShort(true);
     }
 
-    protected int getLTriad(){
+    protected int getLTriad()
+    {
         return Binary.readLTriad(get(3));
     }
 
-    protected int getByte(boolean signed){
-        int b = Binary.readByte(buffer[offset], signed);
+    protected int getByte(boolean signed)
+    {
+        int b = Binary.readByte(buffer.getByte(offset), signed);
         offset = offset + 1;
         return b;
     }
 
-    protected byte getByte(){
+    protected byte getByte()
+    {
         return (byte) getByte(true);
     }
 
-    protected String getString(){
-        byte[] d = get(getShort());
+    protected String getString()
+    {
+        ByteBuf bb = get(getShort());
+        byte[] d = new byte[bb.readableBytes()];
+        bb.copy().readBytes(d);
         return new String(d);
     }
 
-    protected InetSocketAddress getAddress(){
+    protected InetSocketAddress getAddress()
+    {
         int version = getByte();
-        if(version == 4){
-            String address = ((~getByte()) & 0xff) +"."+ ((~getByte()) & 0xff) +"."+ ((~getByte()) & 0xff) +"."+ ((~getByte()) & 0xff);
+        if (version == 4)
+        {
+            String address = ((~getByte()) & 0xff) + "." + ((~getByte()) & 0xff) + "." + ((~getByte()) & 0xff) + "." + ((~getByte()) & 0xff);
             int port = getShort(false);
             return new InetSocketAddress(address, port);
-        } else {
+        } else
+        {
             //TODO: IPv6
             return new InetSocketAddress("0.0.0.0", 0);
         }
     }
 
-    protected boolean feof(){
-        try{
-            byte d = buffer[offset];
-            return false;
-        } catch (ArrayIndexOutOfBoundsException e){
-            return true;
-        }
+    protected boolean feof()
+    {
+        return buffer.readableBytes() == offset;
     }
 
-    protected void put(byte[] bytes){
-        sendBuffer.put(bytes);
+    protected void put(ByteBuf bytes)
+    {
+        sendBuffer.writeBytes(bytes);
     }
 
-    protected void putLong(long l){
-        sendBuffer.put(Binary.writeLong(l));
+    protected void put(byte[] bytes)
+    {
+        sendBuffer.writeBytes(bytes);
     }
 
-    protected void putInt(int i){
-        sendBuffer.put(Binary.writeInt(i));
+    protected void putLong(long l)
+    {
+        sendBuffer.writeBytes(Binary.writeLong(l));
     }
 
-    protected void putShort(short s){
-        sendBuffer.put(Binary.writeShort(s));
+    protected void putInt(int i)
+    {
+        sendBuffer.writeBytes(Binary.writeInt(i));
     }
 
-    protected void putLTriad(int t){
-        sendBuffer.put(Binary.writeLTriad(t));
+    protected void putShort(short s)
+    {
+        sendBuffer.writeBytes(Binary.writeShort(s));
     }
 
-    protected void putByte(byte b){
-        sendBuffer.put(b);
+    protected void putLTriad(int t)
+    {
+        sendBuffer.writeBytes(Binary.writeLTriad(t));
     }
 
-    protected void putString(String s){
+    protected void putByte(byte b)
+    {
+        sendBuffer.writeByte(b);
+    }
+
+    protected void putString(String s)
+    {
         putShort((short) s.getBytes().length);
         put(s.getBytes());
     }
 
-    protected void putAddress(String addr, int port, byte version){
-        if(!addr.contains(Pattern.quote("."))){
-            try {
+    protected void putAddress(String addr, int port, byte version)
+    {
+        if (!addr.contains(Pattern.quote(".")))
+        {
+            try
+            {
                 addr = InetAddress.getByName(addr).getHostAddress();
-            } catch (UnknownHostException e) {
+            } catch (UnknownHostException e)
+            {
                 e.printStackTrace();
             }
         }
         putByte(version);
-        if(version == 4){
-            for (String section : addr.split(Pattern.quote("."))){
+        if (version == 4)
+        {
+            for (String section : addr.split(Pattern.quote(".")))
+            {
                 putByte((byte) ((byte) ~(Integer.parseInt(section)) & 0xFF));
             }
             putShort((short) port);
@@ -192,21 +218,25 @@ public abstract class Packet {
     }
 
     protected abstract void _encode();
+
     protected abstract void _decode();
 
-    public void encode(){
-        sendBuffer = ByteBuffer.allocate(64 * 64 * 64);
+    public void encode()
+    {
+        sendBuffer = buffer(64 * 64 * 64);
         putByte(getID());
         _encode();
-        buffer = Arrays.copyOf(sendBuffer.array(), sendBuffer.position());
+        buffer = sendBuffer.copy();
     }
 
-    public void decode(){
+    public void decode()
+    {
         getByte();
         _decode();
     }
 
-    public void clean(){
+    public void clean()
+    {
         buffer = null;
         sendBuffer = null;
         offset = 0;

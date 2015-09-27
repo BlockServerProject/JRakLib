@@ -19,111 +19,134 @@
  */
 package net.beaconpe.jraklib.client;
 
+import io.netty.buffer.ByteBuf;
+import static io.netty.buffer.Unpooled.buffer;
+import static io.netty.buffer.Unpooled.wrappedBuffer;
 import net.beaconpe.jraklib.Binary;
 import net.beaconpe.jraklib.JRakLib;
 import net.beaconpe.jraklib.protocol.EncapsulatedPacket;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-
 /**
  * A handler class for handling the client.
- *
- * @author jython234
  */
-public class ClientHandler {
+public class ClientHandler
+{
+
     protected JRakLibClient client;
     protected ClientInstance instance;
 
-    public ClientHandler(JRakLibClient client, ClientInstance instance){
+    public ClientHandler(JRakLibClient client, ClientInstance instance)
+    {
         this.client = client;
         this.instance = instance;
     }
 
-    public void sendEncapsulated(EncapsulatedPacket packet){
+    public void sendEncapsulated(EncapsulatedPacket packet)
+    {
         byte flags = JRakLib.PRIORITY_NORMAL;
         sendEncapsulated("", packet, flags);
     }
 
-    public void sendEncapsulated(String identifier, EncapsulatedPacket packet, byte flags){
-        ByteBuffer bb = ByteBuffer.allocate(3+identifier.getBytes().length+packet.getTotalLength(true));
-        bb.put(JRakLib.PACKET_ENCAPSULATED).put((byte) identifier.getBytes().length).put(identifier.getBytes()).put(flags).put(packet.toBinary(true));
-        client.pushMainToThreadPacket(Arrays.copyOf(bb.array(), bb.position()));
+    public void sendEncapsulated(String identifier, EncapsulatedPacket packet, byte flags)
+    {
+        ByteBuf bb = buffer(3 + identifier.getBytes().length + packet.getTotalLength(true));
+        bb.writeByte(JRakLib.PACKET_ENCAPSULATED).writeByte((byte) identifier.getBytes().length).writeBytes(identifier.getBytes()).writeByte(flags).writeBytes(packet.toBinary(true));
+        client.pushMainToThreadPacket(bb.copy());
         bb = null;
     }
 
-    public void sendRaw(byte[] payload){
+    public void sendRaw(ByteBuf payload)
+    {
         sendRaw(client.getServerIP(), (short) client.getServerPort(), payload);
     }
 
-    public void sendRaw(String address, short port, byte[] payload){
-        ByteBuffer bb = ByteBuffer.allocate(4+address.getBytes().length+payload.length);
-        bb.put(JRakLib.PACKET_RAW).put((byte) address.getBytes().length).put(address.getBytes()).put(Binary.writeShort(port)).put(payload);
-        client.pushMainToThreadPacket(bb.array());
+    public void sendRaw(String address, short port, ByteBuf payload)
+    {
+        ByteBuf bb = buffer(4 + address.getBytes().length + payload.readableBytes());
+        bb.writeByte(JRakLib.PACKET_RAW).writeByte((byte) address.getBytes().length).writeBytes(address.getBytes()).writeBytes(Binary.writeShort(port)).writeBytes(payload);
+        client.pushMainToThreadPacket(bb.copy());
     }
 
-    public void sendOption(String name, String value){
-        ByteBuffer bb = ByteBuffer.allocate(2+name.getBytes().length+value.getBytes().length);
-        bb.put(JRakLib.PACKET_SET_OPTION).put((byte) name.getBytes().length).put(name.getBytes()).put(value.getBytes());
-        client.pushMainToThreadPacket(bb.array());
+    public void sendOption(String name, String value)
+    {
+        ByteBuf bb = buffer(2 + name.getBytes().length + value.getBytes().length);
+        bb.writeByte(JRakLib.PACKET_SET_OPTION).writeByte((byte) name.getBytes().length).writeBytes(name.getBytes()).writeBytes(value.getBytes());
+        client.pushMainToThreadPacket(bb.copy());
     }
 
-    public void disconnectFromServer(){
+    public void disconnectFromServer()
+    {
         shutdown();
     }
 
-    public void shutdown(){
+    public void shutdown()
+    {
         client.shutdown();
-        client.pushMainToThreadPacket(new byte[] {JRakLib.PACKET_SHUTDOWN});
+        client.pushMainToThreadPacket(wrappedBuffer(new byte[]
+        {
+            JRakLib.PACKET_SHUTDOWN
+        }));
         //TODO: Find a way to kill client after sleep.
     }
 
-    public void emergencyShutdown(){
+    public void emergencyShutdown()
+    {
         client.shutdown();
-        client.pushMainToThreadPacket(new byte[] {0x7f}); //JRakLib::PACKET_EMERGENCY_SHUTDOWN
+        client.pushMainToThreadPacket(wrappedBuffer(new byte[]
+        {
+            0x7f
+        })); //JRakLib::PACKET_EMERGENCY_SHUTDOWN
     }
 
-    public boolean handlePacket(){
-        byte[] packet = client.readThreadToMainPacket();
-        if(packet == null){
+    public boolean handlePacket()
+    {
+        ByteBuf packet = client.readThreadToMainPacket();
+        if (packet == null)
+        {
             return false;
         }
-        if(packet.length > 0){
-            byte id = packet[0];
+        if (packet.readableBytes() > 0)
+        {
+            byte id = packet.getByte(0);
             int offset = 1;
-            if(id == JRakLib.PACKET_ENCAPSULATED){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            if (id == JRakLib.PACKET_ENCAPSULATED)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 offset += len;
-                byte flags = packet[offset++];
-                byte[] buffer = Binary.subbytes(packet, offset);
+                byte flags = packet.getByte(offset++);
+                ByteBuf buffer = Binary.subbytes(packet, offset);
                 instance.handleEncapsulated(EncapsulatedPacket.fromBinary(buffer, true), flags);
-            } else if(id == JRakLib.PACKET_RAW){
-                int len = packet[offset++];
-                String address = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_RAW)
+            {
+                int len = packet.getByte(offset++);
+                String address = Binary.subbytesString(packet, offset, len);
                 offset += len;
                 int port = Binary.readShort(Binary.subbytes(packet, offset, 2));
                 offset += 2;
-                byte[] payload = Binary.subbytes(packet, offset);
+                ByteBuf payload = Binary.subbytes(packet, offset);
                 instance.handleRaw(payload);
-            } else if(id == JRakLib.PACKET_SET_OPTION){
-                int len = packet[offset++];
-                String name = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_SET_OPTION)
+            {
+                int len = packet.getByte(offset++);
+                String name = Binary.subbytesString(packet, offset, len);
                 offset += len;
-                String value = new String(Binary.subbytes(packet, offset));
+                String value = Binary.subbytesString(packet, offset);
                 instance.handleOption(name, value);
-            } else if(id == JRakLib.PACKET_OPEN_SESSION){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_OPEN_SESSION)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 offset += len;
                 long serverID = Binary.readLong(Binary.subbytes(packet, offset, 8));
                 instance.connectionOpened(serverID);
-            } else if(id == JRakLib.PACKET_CLOSE_SESSION){
-                int len = packet[offset++];
-                String identifier = new String(Binary.subbytes(packet, offset, len));
+            } else if (id == JRakLib.PACKET_CLOSE_SESSION)
+            {
+                int len = packet.getByte(offset++);
+                String identifier = Binary.subbytesString(packet, offset, len);
                 offset += len;
-                len = packet[offset++];
-                String reason = new String(Binary.subbytes(packet, offset, len));
+                len = packet.getByte(offset++);
+                String reason = Binary.subbytesString(packet, offset, len);
                 instance.connectionClosed(reason);
             }
             return true;

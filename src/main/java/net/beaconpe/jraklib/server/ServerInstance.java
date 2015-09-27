@@ -19,12 +19,14 @@
  */
 package net.beaconpe.jraklib.server;
 
+import io.netty.buffer.ByteBuf;
 import net.beaconpe.jraklib.protocol.EncapsulatedPacket;
 
 /**
  * An interface for communication with the server implementation.
  */
-public interface ServerInstance {
+public interface ServerInstance
+{
 
     void openSession(String identifier, String address, int port, long clientID);
 
@@ -32,7 +34,7 @@ public interface ServerInstance {
 
     void handleEncapsulated(String identifier, EncapsulatedPacket packet, int flags);
 
-    void handleRaw(String address, int port, byte[] payload);
+    void handleRaw(String address, int port, ByteBuf payload);
 
     void notifyACK(String identifier, int identifierACK);
 

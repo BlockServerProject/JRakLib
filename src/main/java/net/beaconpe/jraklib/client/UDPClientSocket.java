@@ -19,48 +19,52 @@
  */
 package net.beaconpe.jraklib.client;
 
+import io.netty.buffer.ByteBuf;
 import net.beaconpe.jraklib.Logger;
-
-import javax.xml.crypto.Data;
 import java.io.Closeable;
 import java.io.IOException;
 import java.net.*;
 import java.util.Arrays;
-import java.util.ConcurrentModificationException;
 
 /**
  * A UDP Client socket.
- *
- * @author jython234
  */
-public class UDPClientSocket implements Closeable{
+public class UDPClientSocket implements Closeable
+{
+
     private Logger logger;
     private DatagramSocket socket;
 
     /**
      * Create a new UDP Client socket with the specified logger.
+     *
      * @param logger The logger used in case the socket was unable to be created.
      */
-    public UDPClientSocket(Logger logger){
+    public UDPClientSocket(Logger logger)
+    {
         this.logger = logger;
-        try {
+        try
+        {
             socket = new DatagramSocket();
             socket.setBroadcast(true);
             socket.setSendBufferSize(1024 * 1024 * 8);
             socket.setReceiveBufferSize(1024 * 1024 * 8);
             socket.setSoTimeout(1);
-        } catch (SocketException e) {
+        } catch (SocketException e)
+        {
             logger.critical("**** FAILED TO CREATE SOCKET!");
-            logger.critical("java.net.SocketException: "+e.getMessage());
+            logger.critical("java.net.SocketException: " + e.getMessage());
             System.exit(1);
         }
     }
 
     /**
      * Returns the socket used by this client socket.
+     *
      * @return DatagramSocket
      */
-    public DatagramSocket getSocket(){
+    public DatagramSocket getSocket()
+    {
         return socket;
     }
 
@@ -68,71 +72,90 @@ public class UDPClientSocket implements Closeable{
      * Closes this socket, and the underlying DatagramSocket.
      */
     @Override
-    public void close() {
+    public void close()
+    {
         socket.close();
     }
 
     /**
-     * Reads a packet from the socket (non-blocking). If no packet is received, the method will return <code>null.</code>
+     * Reads a packet from the socket (non-blocking). If no packet is received, the method will return
+     * <code>null.</code>
+     *
      * @return The DatagramPacket, if received.
      * @throws IOException If there is a problem while reading.
      */
-    public DatagramPacket readPacket() throws IOException {
+    public DatagramPacket readPacket() throws IOException
+    {
         DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
-        try {
+        try
+        {
             socket.receive(dp);
             dp.setData(Arrays.copyOf(dp.getData(), dp.getLength()));
             return dp;
-        } catch (SocketTimeoutException e) {
+        } catch (SocketTimeoutException e)
+        {
             return null;
         }
     }
 
     /**
      * Reads a packet from the socket (blocking). If no packet is received, the method will return <code>null.</code>
-     * @param blockFor Block for this amount (milliseconds). If amount is negative, the method will block forever (until a packet is received)
+     *
+     * @param blockFor Block for this amount (milliseconds). If amount is negative, the method will block forever (until
+     * a packet is received)
      * @return The DatagramPacket, if received.
      * @throws IOException If there is a problem while reading.
      */
-    public DatagramPacket readPacketBlocking(int blockFor) throws IOException{
+    public DatagramPacket readPacketBlocking(int blockFor) throws IOException
+    {
         DatagramPacket dp = new DatagramPacket(new byte[65535], 65535);
-        try {
+        try
+        {
             socket.setSoTimeout(blockFor);
             socket.receive(dp);
             socket.setSoTimeout(1);
             dp.setData(Arrays.copyOf(dp.getData(), dp.getLength()));
             return dp;
-        } catch (SocketTimeoutException e) {
+        } catch (SocketTimeoutException e)
+        {
             return null;
         }
     }
 
     /**
      * Sends a packet to the specified <code>dest</code>.
+     *
      * @param buffer Raw payload of the packet.
      * @param dest The endpoint where the data will go.
      * @throws IOException If there is a problem while sending.
      */
-    public void writePacket(byte[] buffer, SocketAddress dest) throws IOException {
-        DatagramPacket dp = new DatagramPacket(buffer, buffer.length, dest);
+    public void writePacket(ByteBuf buffer, SocketAddress dest) throws IOException
+    {
+        byte[] bufferRaw = new byte[buffer.readableBytes()];
+        buffer.copy().readBytes(bufferRaw);
+        DatagramPacket dp = new DatagramPacket(bufferRaw, buffer.readableBytes(), dest);
         socket.send(dp);
     }
 
     /**
      * Sets this socket's send buffer size. Defaults to 1024 * 1024 * 8.
+     *
      * @param size Size in bytes.
      * @throws SocketException If there is a failure.
      */
-    public void setSendBuffer(int size) throws SocketException {
+    public void setSendBuffer(int size) throws SocketException
+    {
         socket.setSendBufferSize(size);
     }
 
     /**
      * Sets this socket's receive buffer size. Defaults to 1024 * 1024 * 8.
+     *
      * @param size Size in bytes.
      * @throws SocketException If there is a failure.
      */
-    public void setRecvBuffer(int size) throws SocketException {
+    public void setRecvBuffer(int size) throws SocketException
+    {
         socket.setReceiveBufferSize(size);
     }
 }

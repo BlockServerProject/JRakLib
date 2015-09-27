@@ -19,10 +19,11 @@
  */
 package net.beaconpe.jraklib.client;
 
+import io.netty.buffer.ByteBuf;
+import static io.netty.buffer.Unpooled.wrappedBuffer;
 import net.beaconpe.jraklib.Logger;
 import net.beaconpe.jraklib.protocol.UNCONNECTED_PING;
 import net.beaconpe.jraklib.protocol.UNCONNECTED_PONG;
-
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
@@ -32,40 +33,41 @@ import java.util.Random;
 
 /**
  * Represents a JRakLib Client.
- * @author jython234
  */
-public class JRakLibClient extends Thread{
+public class JRakLibClient extends Thread
+{
+
     private static long clientID = new Random(System.currentTimeMillis()).nextLong();
     private static long startTime = -1;
     protected InetSocketAddress serverEndpoint;
-
     protected Logger logger;
     protected boolean shutdown = false;
-
-    protected List<byte[]> externalQueue;
-    protected List<byte[]> internalQueue;
+    protected List<ByteBuf> externalQueue;
+    protected List<ByteBuf> internalQueue;
 
     /**
      * Creates a new JRakLibClient and connects right away.
+     *
      * @param logger Logger implementation for the client.
      * @param serverIP The server IP address.
      * @param serverPort The server's port.
      */
-    public JRakLibClient(Logger logger, String serverIP, int serverPort){
-        if(serverPort < 1 || serverPort > 65536){
+    public JRakLibClient(Logger logger, String serverIP, int serverPort)
+    {
+        if (serverPort < 1 || serverPort > 65536)
+        {
             throw new IllegalArgumentException("Invalid port range.");
         }
         this.logger = logger;
         this.serverEndpoint = new InetSocketAddress(serverIP, serverPort);
-
         externalQueue = new LinkedList<>();
         internalQueue = new LinkedList<>();
-
         start();
     }
 
     /**
      * Pings a RakNet server at the specified <code>serverIP</code> and <code>serverPort</code>.
+     *
      * @param logger Logger implementation.
      * @param serverIP The server's IP Address.
      * @param serverPort The server's port.
@@ -74,21 +76,24 @@ public class JRakLibClient extends Thread{
      * @throws IOException If there is a problem while reading/sending.
      * @return The ping response
      */
-    public static PingResponse pingServer(Logger logger, String serverIP, int serverPort, int tries, int delay) throws IOException {
-        if(startTime == -1){
+    public static PingResponse pingServer(Logger logger, String serverIP, int serverPort, int tries, int delay) throws IOException
+    {
+        if (startTime == -1)
+        {
             startTime = System.currentTimeMillis();
         }
         UDPClientSocket socket = new UDPClientSocket(logger);
-        for(int i = 0; i < tries; i++){
+        for (int i = 0; i < tries; i++)
+        {
             UNCONNECTED_PING ping = new UNCONNECTED_PING();
             ping.pingId = System.currentTimeMillis() - startTime; //Amount since start.
             ping.encode();
             socket.writePacket(ping.buffer, new InetSocketAddress(serverIP, serverPort));
-
             DatagramPacket pkt = socket.readPacketBlocking(delay);
-            if(pkt != null && pkt.getData()[0] == UNCONNECTED_PONG.ID){
+            if (pkt != null && pkt.getData()[0] == UNCONNECTED_PONG.ID)
+            {
                 UNCONNECTED_PONG pong = new UNCONNECTED_PONG();
-                pong.buffer = pkt.getData();
+                pong.buffer = wrappedBuffer(pkt.getData());
                 pong.decode();
                 return new PingResponse(pong.serverID, pong.pingID, pong.serverName);
             }
@@ -96,58 +101,72 @@ public class JRakLibClient extends Thread{
         return null;
     }
 
-    public boolean isShutdown(){
+    public boolean isShutdown()
+    {
         return shutdown == true;
     }
 
-    public void shutdown(){
+    public void shutdown()
+    {
         shutdown = true;
     }
 
-    public int getServerPort(){
+    public int getServerPort()
+    {
         return serverEndpoint.getPort();
     }
 
-    public String getServerIP(){
+    public String getServerIP()
+    {
         return serverEndpoint.getHostString();
     }
 
-    public InetSocketAddress getServerEndpoint() {
+    public InetSocketAddress getServerEndpoint()
+    {
         return serverEndpoint;
     }
 
-    public Logger getLogger(){
+    public Logger getLogger()
+    {
         return logger;
     }
 
-    public List<byte[]> getExternalQueue(){
+    public List<ByteBuf> getExternalQueue()
+    {
         return externalQueue;
     }
 
-    public List<byte[]> getInternalQueue(){
+    public List<ByteBuf> getInternalQueue()
+    {
         return internalQueue;
     }
 
-    public void pushMainToThreadPacket(byte[] bytes){
+    public void pushMainToThreadPacket(ByteBuf bytes)
+    {
         internalQueue.add(0, bytes);
     }
 
-    public byte[] readMainToThreadPacket(){
-        if(!internalQueue.isEmpty()) {
-            byte[] data = internalQueue.get(internalQueue.size() - 1);
+    public ByteBuf readMainToThreadPacket()
+    {
+        if (!internalQueue.isEmpty())
+        {
+            ByteBuf data = internalQueue.get(internalQueue.size() - 1);
             internalQueue.remove(data);
             return data;
         }
         return null;
     }
 
-    public void pushThreadToMainPacket(byte[] bytes){
+    public void pushThreadToMainPacket(ByteBuf bytes)
+    {
         externalQueue.add(0, bytes);
     }
 
-    public byte[] readThreadToMainPacket(){
-        if(!externalQueue.isEmpty()) {
-            byte[] data = externalQueue.get(externalQueue.size() - 1);
+    public ByteBuf readThreadToMainPacket()
+    {
+        if (!externalQueue.isEmpty())
+        {
+            ByteBuf data = externalQueue.get(externalQueue.size() - 1);
             externalQueue.remove(data);
             return data;
         }
@@ -157,30 +176,39 @@ public class JRakLibClient extends Thread{
     /**
      * Regenerates the static clientID.
      */
-    public static void regenerateClientID(){
+    public static void regenerateClientID()
+    {
         clientID = new Random().nextLong();
     }
 
     /**
      * Regenerates the static clientID with the specified seed.
+     *
      * @param seed The seed to generate the clientID.
      */
-    public static void regenerateClientID(long seed){
+    public static void regenerateClientID(long seed)
+    {
         clientID = new Random(seed).nextLong();
     }
 
-    public static long getClientID(){
+    public static long getClientID()
+    {
         return clientID;
     }
 
-    public long getTimeSinceStart() {
+    public long getTimeSinceStart()
+    {
         return startTime;
     }
 
-    private class ShutdownHandler extends Thread {
+    private class ShutdownHandler extends Thread
+    {
+
         @Override
-        public void run() {
-            if (shutdown != true) {
+        public void run()
+        {
+            if (shutdown != true)
+            {
                 logger.emergency("[JRakLib Thread #" + getId() + "] JRakLib crashed!");
             }
         }
@@ -189,15 +217,19 @@ public class JRakLibClient extends Thread{
     /**
      * Represents a PingResponse from a server.
      */
-    public static class PingResponse {
+    public static class PingResponse
+    {
+
         /**
          * The PingId from the packet. The original amount sent to the server was the time sent start. (in milliseconds)
          * <br>
-         * You can find more information here: http://wiki.vg/Pocket_Minecraft_Protocol#ID_CONNECTED_PING_OPEN_CONNECTIONS_.280x01.29
+         * You can find more information here:
+         * http://wiki.vg/Pocket_Minecraft_Protocol#ID_CONNECTED_PING_OPEN_CONNECTIONS_.280x01.29
          */
         public final long pingId;
         /**
-         * The serverId from the packet. This is the server's unique identifier generated at startup. (The value changes each runtime, and could be modified in transport)
+         * The serverId from the packet. This is the server's unique identifier generated at startup. (The value changes
+         * each runtime, and could be modified in transport)
          */
         public final long serverId;
         /**
@@ -205,7 +237,8 @@ public class JRakLibClient extends Thread{
          */
         public final String name;
 
-        public PingResponse(long serverId, long pingId, String name){
+        public PingResponse(long serverId, long pingId, String name)
+        {
             this.pingId = pingId;
             this.serverId = serverId;
             this.name = name;
@@ -213,8 +246,10 @@ public class JRakLibClient extends Thread{
     }
 
     @Override
-    public void run(){
-        setName("JRakLib Client Thread #"+getId());
+    public void run()
+    {
+        System.out.println("Generated ID: " + clientID);
+        setName("JRakLib Client Thread #" + getId());
         Runtime.getRuntime().addShutdownHook(new ShutdownHandler());
         UDPClientSocket socket = new UDPClientSocket(logger);
         new ConnectionManager(this, socket);

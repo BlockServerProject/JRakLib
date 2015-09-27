@@ -19,29 +19,32 @@
  */
 package net.beaconpe.jraklib.client;
 
+import io.netty.buffer.ByteBuf;
 import net.beaconpe.jraklib.protocol.EncapsulatedPacket;
 
 /**
- * An interface for communication with the client implementation
- * .
- * @author jython234
+ * An interface for communication with the client implementation.
  */
-public interface ClientInstance {
+public interface ClientInstance
+{
 
     /**
      * Called when the connection is opened to the RakNet server.
+     *
      * @param serverId The serverId of the RakNet server.
      */
     void connectionOpened(long serverId);
 
     /**
      * Called when the connection is closed.
+     *
      * @param reason The reason for the closure.
      */
     void connectionClosed(String reason);
 
     /**
      * Called when an <code>EncapsulatedPacket</code> is received from the RakNet server.
+     *
      * @param packet The packet received.
      * @param flags Flags from the packet.
      */
@@ -49,12 +52,14 @@ public interface ClientInstance {
 
     /**
      * Called when an unrecognized packet is received from the server.
+     *
      * @param payload Raw payload (in bytes) of the strange packet.
      */
-    void handleRaw(byte[] payload);
+    void handleRaw(ByteBuf payload);
 
     /**
      * Called when an internal option is updated. Current only supports "bandwith"
+     *
      * @param option The option name.
      * @param value The option value.
      */

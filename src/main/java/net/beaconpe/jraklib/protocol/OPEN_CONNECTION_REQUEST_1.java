@@ -24,27 +24,32 @@ import net.beaconpe.jraklib.JRakLib;
 /**
  * OPEN_CONNECTION_REQUEST_1 (Not encapsulated, 0x05)
  */
-public class OPEN_CONNECTION_REQUEST_1 extends Packet{
+public class OPEN_CONNECTION_REQUEST_1 extends Packet
+{
+
     public static byte ID = 0x05;
     public byte protocol = JRakLib.PROTOCOL;
     public short mtuSize;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x05;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         put(JRakLib.MAGIC);
         putByte(protocol);
         put(new byte[mtuSize - 18]);
     }
 
     @Override
-    protected void _decode() {
-        offset = offset + 15; //Magic
+    protected void _decode()
+    {
+        offset = offset + JRakLib.MAGIC.length;
         protocol = getByte();
-        mtuSize = (short) (get().length - 18);
+        mtuSize = (short) (get().readableBytes() - 18);
     }
 }

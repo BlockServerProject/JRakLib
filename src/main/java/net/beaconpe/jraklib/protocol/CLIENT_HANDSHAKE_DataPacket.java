@@ -24,24 +24,27 @@ import java.net.InetSocketAddress;
 /**
  * CLIENT_HANDSHAKE (Encapsulated, 0x13)
  */
-public class CLIENT_HANDSHAKE_DataPacket extends Packet{
+public class CLIENT_HANDSHAKE_DataPacket extends Packet
+{
+
     public static byte ID = 0x13;
     public InetSocketAddress address;
-
     public InetSocketAddress[] systemAddresses;
-
     public long sendPing;
     public long sendPong;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x13;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         putAddress(address.getHostString(), address.getPort(), (byte) 4);
-        for(InetSocketAddress a : systemAddresses){
+        for (InetSocketAddress a : systemAddresses)
+        {
             putAddress(a.getHostString(), a.getPort(), (byte) 4);
         }
         putLong(sendPing);
@@ -49,10 +52,12 @@ public class CLIENT_HANDSHAKE_DataPacket extends Packet{
     }
 
     @Override
-    protected void _decode() {
+    protected void _decode()
+    {
         address = getAddress();
         systemAddresses = new InetSocketAddress[10];
-        for(int i = 0; i < 10; i++){
+        for (int i = 0; i < 10; i++)
+        {
             systemAddresses[i] = getAddress();
         }
         sendPing = getLong();
