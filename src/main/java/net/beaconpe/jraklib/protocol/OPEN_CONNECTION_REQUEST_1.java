@@ -22,8 +22,7 @@ package net.beaconpe.jraklib.protocol;
 import net.beaconpe.jraklib.JRakLib;
 
 /**
- *
- * @author beaconpe
+ * OPEN_CONNECTION_REQUEST_1 (Not encapsulated, 0x05)
  */
 public class OPEN_CONNECTION_REQUEST_1 extends Packet
 {
