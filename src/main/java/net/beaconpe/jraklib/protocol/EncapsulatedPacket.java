@@ -103,7 +103,8 @@ public class EncapsulatedPacket
             packet.splitIndex = Binary.readInt(Binary.subbytes(binary, offset, 4));
             offset = offset + 4;
         }
-        packet.buffer = Binary.subbytes(binary, offset, length);
+        packet.buffer = buffer(length);
+        binary.getBytes(offset, packet.buffer);
         offset = offset + length;
         packet.offset = offset;
         return packet;

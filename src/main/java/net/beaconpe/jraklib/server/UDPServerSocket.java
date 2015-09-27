@@ -111,16 +111,20 @@ public class UDPServerSocket implements Closeable
             }
         };
         bootstrap = new Bootstrap();
-        bootstrap
-                .channel(getServerChannel())
-                .option(ChannelOption.SO_REUSEADDR, true)
-                .option(ChannelOption.SO_BROADCAST, true)
-                .handler(SERVER_CHILD)
-                .group(eventLoops)
-                .localAddress(socketAddress)
-                .bind()
-                .addListener(listener);
-        //.sync().channel().closeFuture().await(); // its necessary ?
+        try {
+            bootstrap
+                    .channel(getServerChannel())
+                    .option(ChannelOption.SO_REUSEADDR, true)
+                    .option(ChannelOption.SO_BROADCAST, true)
+                    .handler(SERVER_CHILD)
+                    .group(eventLoops)
+                    .localAddress(socketAddress)
+                    .bind()
+                    .addListener(listener)
+            .sync().channel().closeFuture().await(); // its necessary ?
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public void writePacket(Packet packet, ChannelHandlerContext ctx, InetSocketAddress dest) throws IOException
