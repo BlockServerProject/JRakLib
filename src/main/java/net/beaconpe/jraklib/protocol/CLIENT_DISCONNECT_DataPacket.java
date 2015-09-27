@@ -22,20 +22,24 @@ package net.beaconpe.jraklib.protocol;
 /**
  * CLIENT_DISCONNECT (Encapsulated, 0x15)
  */
-public class CLIENT_DISCONNECT_DataPacket extends Packet{
+public class CLIENT_DISCONNECT_DataPacket extends Packet
+{
+
     public static byte ID = 0x15;
 
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x15;
     }
 
     @Override
-    protected void _encode() {
-
+    protected void _encode()
+    {
     }
 
     @Override
-    protected void _decode() {
-
+    protected void _decode()
+    {
     }
 }

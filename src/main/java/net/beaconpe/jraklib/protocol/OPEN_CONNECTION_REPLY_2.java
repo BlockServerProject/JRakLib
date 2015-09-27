@@ -19,26 +19,29 @@
  */
 package net.beaconpe.jraklib.protocol;
 
-import net.beaconpe.jraklib.JRakLib;
-
 import java.net.InetSocketAddress;
+import net.beaconpe.jraklib.JRakLib;
 
 /**
  * OPEN_CONNECTION_REPLY_2 (Not encapsulated, 0x08)
  */
-public class OPEN_CONNECTION_REPLY_2 extends Packet{
+public class OPEN_CONNECTION_REPLY_2 extends Packet
+{
+
     public static byte ID = 0x08;
     public long serverID;
     public InetSocketAddress clientAddress;
     public short mtuSize;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x08;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         put(JRakLib.MAGIC);
         putLong(serverID);
         putAddress(clientAddress.getHostString(), clientAddress.getPort(), (byte) 4);
@@ -47,8 +50,9 @@ public class OPEN_CONNECTION_REPLY_2 extends Packet{
     }
 
     @Override
-    protected void _decode() {
-        offset = offset + 15;
+    protected void _decode()
+    {
+        offset = offset + JRakLib.MAGIC.length;
         serverID = getLong();
         clientAddress = getAddress();
         mtuSize = getShort();

@@ -19,26 +19,33 @@
  */
 package net.beaconpe.jraklib;
 
-import java.time.Instant;
+import io.netty.buffer.ByteBuf;
 import java.util.regex.Pattern;
 
 /**
  * JRakLib Constants Class.
  */
-public abstract class JRakLib {
-    public static final String VERSION = "1.1.1-SNAPSHOT";
-    public static final byte PROTOCOL = 7;
-    public static final byte[] MAGIC = new byte[]{
-            0x00, (byte) 0xff, (byte) 0xff, 0x00,
-            (byte) 0xfe, (byte) 0xfe, (byte) 0xfe, (byte) 0xfe,
-            (byte) 0xfd, (byte) 0xfd, (byte) 0xfd, (byte) 0xfd,
-            0x12, 0x34, 0x56, 0x78 };
+public abstract class JRakLib
+{
 
+    public static final String VERSION = "1.0.0-SNAPSHOT";
+    public static final byte PROTOCOL = 7;
+    public static final byte[] MAGIC = new byte[]
+    {
+        0x00, (byte) 0xff, (byte) 0xff, 0x00,
+        (byte) 0xfe, (byte) 0xfe, (byte) 0xfe, (byte) 0xfe,
+        (byte) 0xfd, (byte) 0xfd, (byte) 0xfd, (byte) 0xfd,
+        0x12, 0x34, 0x56, 0x78
+    };
     public static final byte PRIORITY_NORMAL = 0;
     public static final byte PRIORITY_IMMEDIATE = 1;
-
     public static final byte FLAG_NEED_ACK = 0b00001000;
-    
+    /*
+     * Internal Packet:
+     * int32 (length without this field)
+     * byte (packet ID)
+     * payload
+     */
     /*
      * ENCAPSULATED payload:
      * byte (identifier length)
@@ -116,37 +123,79 @@ public abstract class JRakLib {
      * Leaves everything as-is and halts, other Threads can be in a post-crash condition.
      */
     public static final byte PACKET_EMERGENCY_SHUTDOWN = 0x7f;
-
     /**
-     * RAW payload:
-     * byte (message length)
-     * byte[] message
-     * ushort (class length)
-     * byte[] class message
+     * RAW payload: byte (message length) byte[] message ushort (class length) byte[] class message
      */
     public static final byte PACKET_EXCEPTION_CAUGHT = 0x7d;
 
-    public static void sleepUntil(long time) {
-        while (true) {
-            if (Instant.now().toEpochMilli() >= time) {
+    public static void sleepUntil(long time)
+    {
+        while (true)
+        {
+            if (System.currentTimeMillis() >= time)
+            {
                 break;
             }
         }
     }
 
-    public static String getAddressFromString(String address){
-        if(address.contains("/")){
+    public static String getAddressFromString(String address)
+    {
+        if (address.contains("/"))
+        {
             return address.split(Pattern.quote("/"))[1].split(Pattern.quote(":"))[0];
-        } else {
+        } else
+        {
             return address.split(Pattern.quote(":"))[0];
         }
     }
 
-    public static int getPortFromString(String address){
-        if(address.contains("/")){
+    public static int getPortFromString(String address)
+    {
+        if (address.contains("/"))
+        {
             return Integer.parseInt(address.split(Pattern.quote("/"))[1].split(Pattern.quote(":"))[1]);
-        } else {
+        } else
+        {
             return Integer.parseInt(address.split(Pattern.quote(":"))[1]);
         }
+    }
+
+    public static String bytebufToHexString(ByteBuf bb)
+    {
+        byte[] bytes = new byte[bb.readableBytes()];
+        for (int i = 0; i < bb.readableBytes(); i++)
+        {
+            bytes[i] = bb.getByte(i);
+        }
+        return bytesToHexString(bytes);
+    }
+
+    public static String bytesToHexString(byte[] data)
+    {
+        StringBuilder sb = new StringBuilder();
+        String sTemp;
+        for (int i = 0; i < data.length; i++)
+        {
+            sTemp = Integer.toHexString(0xFF & data[i]);
+            if (sTemp.length() < 2)
+            {
+                sb.append(0);
+            }
+            sb.append(sTemp.toUpperCase()).append(", ");
+        }
+        return sb.toString();
+    }
+
+    public static String getHexString(byte b)
+    {
+        String hex = Integer.toHexString(0xFF & b);
+        String hexString = "";
+        if (hex.length() == 1)
+        {
+            hexString += "0";
+        }
+        hexString += hex;
+        return hexString;
     }
 }

@@ -24,35 +24,40 @@ import java.net.InetSocketAddress;
 /**
  * SERVER_HANDSHAKE (Encapsulated, 0x10)
  */
-public class SERVER_HANDSHAKE_DataPacket extends Packet{
+public class SERVER_HANDSHAKE_DataPacket extends Packet
+{
+
     public static byte ID = 0x10;
     public InetSocketAddress address;
-    public InetSocketAddress[] systemAddresses = new InetSocketAddress[] {
-            new InetSocketAddress("127.0.0.1", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
-            new InetSocketAddress("0.0.0.0", 0),
+    public InetSocketAddress[] systemAddresses = new InetSocketAddress[]
+    {
+        new InetSocketAddress("127.0.0.1", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
+        new InetSocketAddress("0.0.0.0", 0),
     };
-
     public long sendPing;
     public long sendPong;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x10;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         putAddress(address.getHostString(), address.getPort(), (byte) 4);
         putShort((short) 0);
-        for(InetSocketAddress a : systemAddresses){
+        for (InetSocketAddress a : systemAddresses)
+        {
             putAddress(a.getHostString(), a.getPort(), (byte) 4);
         }
         putLong(sendPing);
@@ -60,11 +65,13 @@ public class SERVER_HANDSHAKE_DataPacket extends Packet{
     }
 
     @Override
-    protected void _decode() {
+    protected void _decode()
+    {
         address = getAddress();
         getShort();
         systemAddresses = new InetSocketAddress[10];
-        for(int i = 0; i < 10; i++){
+        for (int i = 0; i < 10; i++)
+        {
             systemAddresses[i] = getAddress();
         }
         sendPing = getLong();

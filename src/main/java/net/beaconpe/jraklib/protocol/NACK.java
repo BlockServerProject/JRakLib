@@ -22,10 +22,14 @@ package net.beaconpe.jraklib.protocol;
 /**
  * Not Acknowledged.
  */
-public class NACK extends AcknowledgePacket{
+public class NACK extends AcknowledgePacket
+{
+
     public static byte ID = (byte) 0xa0;
 
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return (byte) 0xa0;
     }
 }

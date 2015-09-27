@@ -22,22 +22,27 @@ package net.beaconpe.jraklib.protocol;
 /**
  * PING (Encapsulated, 0x00)
  */
-public class PING_DataPacket extends Packet{
+public class PING_DataPacket extends Packet
+{
+
     public static byte ID = 0x00;
     public long pingID;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x00;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         putLong(pingID);
     }
 
     @Override
-    protected void _decode() {
+    protected void _decode()
+    {
         pingID = getLong();
     }
 }

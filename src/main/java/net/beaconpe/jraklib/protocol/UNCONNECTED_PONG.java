@@ -24,19 +24,23 @@ import net.beaconpe.jraklib.JRakLib;
 /**
  * Packet that advertises the server to the client.
  */
-public class UNCONNECTED_PONG extends Packet{
-    public static byte ID = 0x1c;
+public class UNCONNECTED_PONG extends Packet
+{
 
+    public static byte ID = 0x1c;
     public long pingID;
     public long serverID;
     public String serverName;
 
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x1c;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         putLong(pingID);
         putLong(serverID);
         put(JRakLib.MAGIC);
@@ -44,10 +48,11 @@ public class UNCONNECTED_PONG extends Packet{
     }
 
     @Override
-    protected void _decode() {
+    protected void _decode()
+    {
         pingID = getLong();
         serverID = getLong();
-        offset = offset + 16; //magic
+        offset = offset + JRakLib.MAGIC.length;
         serverName = getString();
     }
 }

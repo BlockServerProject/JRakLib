@@ -22,27 +22,31 @@ package net.beaconpe.jraklib.protocol;
 /**
  * CLIENT_CONNECT (Encapsulated, 0x09)
  */
-public class CLIENT_CONNECT_DataPacket extends Packet{
-    public static byte ID = 0x09;
+public class CLIENT_CONNECT_DataPacket extends Packet
+{
 
+    public static byte ID = 0x09;
     public long clientID;
     public long sendPing;
     public boolean useSecurity = false;
 
-
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x09;
     }
 
     @Override
-    protected void _encode() {
+    protected void _encode()
+    {
         putLong(clientID);
         putLong(sendPing);
         putByte((byte) (useSecurity ? 1 : 0));
     }
 
     @Override
-    protected void _decode() {
+    protected void _decode()
+    {
         clientID = getLong();
         sendPing = getLong();
         useSecurity = getByte() > 0;

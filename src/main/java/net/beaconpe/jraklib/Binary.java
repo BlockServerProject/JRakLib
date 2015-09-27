@@ -19,24 +19,24 @@
  */
 package net.beaconpe.jraklib;
 
-
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
+import io.netty.buffer.ByteBuf;
+import static io.netty.buffer.Unpooled.buffer;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * Binary Utility class for writing/reading.
  */
-public class Binary {
+public class Binary
+{
 
     /**
      * Reads a 3-byte little-endian number
      * @param bytes
      * @return integer
      */
-    public static int readLTriad(byte[] bytes){
-        return (bytes[0] & 0xFF) | ((bytes[1] & 0xFF) << 8) | ((bytes[2] & 0x0F) << 16);
+    public static int readLTriad(ByteBuf bytes)
+    {
+        return (bytes.getByte(0) & 0xFF) | ((bytes.getByte(1) & 0xFF) << 8) | ((bytes.getByte(2) & 0x0F) << 16);
     }
 
     /**
@@ -44,12 +44,16 @@ public class Binary {
      * @param triad
      * @return triad bytes
      */
-    public static byte[] writeLTriad(int triad){
-        byte b1,b2,b3;
-        b3 = (byte)(triad & 0xFF);
-        b2 = (byte)((triad >> 8) & 0xFF);
-        b1 = (byte)((triad >> 16) & 0xFF);
-        return new byte[] {b3, b2, b1};
+    public static byte[] writeLTriad(int triad)
+    {
+        byte b1, b2, b3;
+        b3 = (byte) (triad & 0xFF);
+        b2 = (byte) ((triad >> 8) & 0xFF);
+        b1 = (byte) ((triad >> 16) & 0xFF);
+        return new byte[]
+        {
+            b3, b2, b1
+        };
     }
 
     /**
@@ -57,12 +61,9 @@ public class Binary {
      * @param b The raw byte
      * @return The boolean
      */
-    public static boolean readBool(byte b){
-        if(b == 0){
-            return true;
-        } else {
-            return false;
-        }
+    public static boolean readBool(byte b)
+    {
+        return b == 0;
     }
 
     /**
@@ -70,10 +71,13 @@ public class Binary {
      * @param b The boolean
      * @return Boolean as a byte
      */
-    public static byte writeBool(boolean b){
-        if(b){
+    public static byte writeBool(boolean b)
+    {
+        if (b)
+        {
             return 0x01;
-        } else {
+        } else
+        {
             return 0x00;
         }
     }
@@ -84,10 +88,13 @@ public class Binary {
      * @param signed If the byte is signed
      * @return Signed/unsigned byte as int.
      */
-    public static int readByte(byte b, boolean signed){
-        if(signed){
+    public static int readByte(byte b, boolean signed)
+    {
+        if (signed)
+        {
             return b;
-        } else {
+        } else
+        {
             return b & 0xFF;
         }
     }
@@ -97,7 +104,8 @@ public class Binary {
      * @param b Raw byte
      * @return The byte.
      */
-    public static byte writeByte(byte b){
+    public static byte writeByte(byte b)
+    {
         return b;
     }
 
@@ -106,8 +114,9 @@ public class Binary {
      * @param bytes Raw bytes
      * @return The unsigned short.
      */
-    public static int readShort(byte[] bytes){
-        return ((bytes[0] << 8) & 0x0000ff00) | (bytes[1] & 0x000000ff);
+    public static int readShort(ByteBuf bytes)
+    {
+        return ((bytes.getByte(0) << 8) & 0x0000ff00) | (bytes.getByte(1) & 0x000000ff);
     }
 
     /**
@@ -115,8 +124,9 @@ public class Binary {
      * @param bytes Raw bytes
      * @return The signed short.
      */
-    public static short readSignedShort(byte[] bytes){
-        return ByteBuffer.wrap(bytes).getShort();
+    public static short readSignedShort(ByteBuf bytes)
+    {
+        return bytes.getShort(0);
     }
 
     /**
@@ -124,8 +134,9 @@ public class Binary {
      * @param s The short
      * @return Short as a byte array
      */
-    public static byte[] writeShort(short s){
-        return ByteBuffer.allocate(2).putShort(s).array();
+    public static ByteBuf writeShort(short s)
+    {
+        return buffer(0).writeShort(s); //2
     }
 
     /**
@@ -133,11 +144,12 @@ public class Binary {
      * @param s The unsigned short (integer)
      * @return Short as a byte array
      */
-    public static byte[] writeUnsignedShort(int s){
-        ByteBuffer bb = ByteBuffer.allocate(2);
-        bb.put((byte) ((s >> 8) & 0xff));
-        bb.put((byte) (s & 0xff));
-        return bb.array();
+    public static ByteBuf writeUnsignedShort(int s)
+    {
+        ByteBuf bb = buffer(0); //2
+        bb.writeByte((byte) ((s >> 8) & 0xff));
+        bb.writeByte((byte) (s & 0xff));
+        return bb;
     }
 
     /**
@@ -145,8 +157,9 @@ public class Binary {
      * @param bytes Raw bytes
      * @return The integer.
      */
-    public static int readInt(byte[] bytes){
-        return ByteBuffer.wrap(bytes).getInt();
+    public static int readInt(ByteBuf bytes)
+    {
+        return bytes.getInt(0);
     }
 
     /**
@@ -154,8 +167,9 @@ public class Binary {
      * @param i The integer.
      * @return Integer as a byte array
      */
-    public static byte[] writeInt(int i){
-        return ByteBuffer.allocate(4).putInt(i).array();
+    public static ByteBuf writeInt(int i)
+    {
+        return buffer(0).writeInt(i); //4
     }
 
     /**
@@ -163,8 +177,9 @@ public class Binary {
      * @param bytes Raw bytes
      * @return The float
      */
-    public static float readFloat(byte[] bytes){
-        return ByteBuffer.wrap(bytes).getFloat();
+    public static float readFloat(ByteBuf bytes)
+    {
+        return bytes.getFloat(0);
     }
 
     /**
@@ -172,8 +187,9 @@ public class Binary {
      * @param f The float.
      * @return The float as a byte array
      */
-    public static byte[] writeFloat(float f){
-        return ByteBuffer.allocate(4).putFloat(f).array();
+    public static ByteBuf writeFloat(float f)
+    {
+        return buffer(0).writeFloat(f); //4
     }
 
     /**
@@ -181,8 +197,9 @@ public class Binary {
      * @param bytes Raw bytes
      * @return The double.
      */
-    public static double readDouble(byte[] bytes){
-        return ByteBuffer.wrap(bytes).getFloat();
+    public static double readDouble(ByteBuf bytes)
+    {
+        return bytes.getDouble(0);
     }
 
     /**
@@ -190,8 +207,9 @@ public class Binary {
      * @param d The double.
      * @return The double as a byte array
      */
-    public static byte[] writeDouble(double d){
-        return ByteBuffer.allocate(8).putDouble(d).array();
+    public static ByteBuf writeDouble(double d)
+    {
+        return buffer(0).writeDouble(d); //8
     }
 
     /**
@@ -199,8 +217,9 @@ public class Binary {
      * @param bytes Raw bytes
      * @return The long
      */
-    public static long readLong(byte[] bytes){
-        return ByteBuffer.wrap(bytes).getLong();
+    public static long readLong(ByteBuf bytes)
+    {
+        return bytes.getLong(0);
     }
 
     /**
@@ -208,36 +227,50 @@ public class Binary {
      * @param l The long.
      * @return The long as a byte array.
      */
-    public static byte[] writeLong(long l){
-        return ByteBuffer.allocate(8).putLong(l).array();
+    public static ByteBuf writeLong(long l)
+    {
+        return buffer(0).writeLong(l); //8
     }
 
-    public static byte[] subbytes(byte[] bytes, int start, int length){
-        ByteBuffer bb = ByteBuffer.wrap(bytes);
-        bb.position(start);
-        byte[] bytes2 = new byte[length];
-        bb.get(bytes2);
-        return bytes2;
+    public static String subbytesString(ByteBuf bytes, int start, int length)
+    {
+        ByteBuf bb = Binary.subbytes(bytes, start, length);
+        byte[] d = new byte[bb.readableBytes()];
+        bb.getBytes(0, d, 0, bb.readableBytes());
+        return new String(d);
     }
 
-    public static byte[] subbytes(byte[] bytes, int start){
-        return subbytes(bytes, start, bytes.length - start);
+    public static String subbytesString(ByteBuf bytes, int start)
+    {
+        return subbytesString(bytes, start, bytes.readableBytes() - start);
     }
 
-    public static byte[][] splitbytes(byte[] bytes, int chunkSize){
+    public static ByteBuf subbytes(ByteBuf bytes, int start, int length)
+    {
+        return bytes.copy().slice(start, length);
+    }
+
+    public static ByteBuf subbytes(ByteBuf bytes, int start)
+    {
+        return subbytes(bytes, start, bytes.readableBytes() - start);
+    }
+
+    public static byte[][] splitbytes(ByteBuf bytes, int chunkSize)
+    {
         byte[][] splits = new byte[1024][chunkSize];
         int chunks = 0;
-        for(int i=0;i<bytes.length;i+=chunkSize){
-            if((bytes.length - i) > chunkSize){
-                splits[chunks] = Arrays.copyOfRange(bytes, i, i + chunkSize);
-            } else {
-                splits[chunks] = Arrays.copyOfRange(bytes, i, bytes.length);
+        for (int i = 0; i < bytes.readableBytes(); i += chunkSize)
+        {
+            if ((bytes.readableBytes() - i) > chunkSize)
+            {
+                splits[chunks] = Arrays.copyOfRange(bytes.array(), i, i + chunkSize);
+            } else
+            {
+                splits[chunks] = Arrays.copyOfRange(bytes.array(), i, bytes.readableBytes());
             }
             chunks++;
         }
-
         splits = Arrays.copyOf(splits, chunks);
-
         return splits;
     }
 }

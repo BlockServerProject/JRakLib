@@ -22,10 +22,14 @@ package net.beaconpe.jraklib.protocol;
 /**
  * UNCONNECTED_PING_OPEN_CONNECTIONS (Not encapsulated, 0x02)
  */
-public class UNCONNECTED_PING_OPEN_CONNECTIONS extends UNCONNECTED_PING{
+public class UNCONNECTED_PING_OPEN_CONNECTIONS extends UNCONNECTED_PING
+{
+
     public static byte ID = 0x02;
 
-    public byte getID() {
+    @Override
+    public byte getID()
+    {
         return 0x02;
     }
 }

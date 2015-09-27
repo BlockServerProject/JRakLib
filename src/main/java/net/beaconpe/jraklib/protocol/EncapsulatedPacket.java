@@ -19,15 +19,16 @@
  */
 package net.beaconpe.jraklib.protocol;
 
+import io.netty.buffer.ByteBuf;
 import net.beaconpe.jraklib.Binary;
-
-import java.nio.ByteBuffer;
-import java.util.Arrays;
+import static io.netty.buffer.Unpooled.buffer;
 
 /**
  * Represents an encapsulated packet inside a CustomPacket
  */
-public class EncapsulatedPacket {
+public class EncapsulatedPacket
+{
+
     public byte reliability;
     public boolean hasSplit = false;
     public int length = 0;
@@ -37,53 +38,64 @@ public class EncapsulatedPacket {
     public int splitCount = -1;
     public short splitID = -1;
     public int splitIndex = -1;
-    public byte[] buffer;
+    public ByteBuf buffer;
     public boolean needACK = false;
     public int identifierACK = -1;
-
     public int bufferLength;
-
     protected int offset;
 
-    public static EncapsulatedPacket fromBinary(byte[] binary){
+    public static EncapsulatedPacket fromBinary(ByteBuf binary)
+    {
         return fromBinary(binary, false);
     }
 
-    public static EncapsulatedPacket fromBinary(byte[] binary, boolean internal){
+    public static EncapsulatedPacket fromBinary(ByteBuf binary, boolean internal)
+    {
         return fromBinary(binary, internal, -1);
     }
 
-    public static EncapsulatedPacket fromBinary(byte[] binary, boolean internal, int offset){
+    public static EncapsulatedPacket fromBinary(ByteBuf binary, boolean internal, int offset)
+    {
         EncapsulatedPacket packet = new EncapsulatedPacket();
-        packet.bufferLength = binary.length;
-        byte flags = binary[0];
+        packet.bufferLength = binary.readableBytes();
+        byte flags = binary.getByte(0);
         packet.reliability = (byte) ((flags & 0b11100000) >> 5);
         packet.hasSplit = (flags & 0b00010000) > 0;
         int length;
-        if(internal){
+        if (internal)
+        {
             length = Binary.readInt(Binary.subbytes(binary, 1, 4));
             packet.identifierACK = Binary.readInt(Binary.subbytes(binary, 5, 4));
             offset = 9;
-        } else {
+        } else
+        {
             length = Binary.readShort(Binary.subbytes(binary, 1, 2)) / 8;
             offset = 3;
             packet.identifierACK = -1;
         }
-
-        if(packet.reliability > 0){
-            if(packet.reliability >= 2 && packet.reliability != 5){
+        if (packet.reliability > 0)
+        {
+            if (packet.reliability >= 2 && packet.reliability != 5)
+            {
                 packet.messageIndex = Binary.readLTriad(Binary.subbytes(binary, offset, 3));
                 offset = offset + 3;
             }
-
-            if(packet.reliability <= 4 && packet.reliability != 2){
+            if (packet.reliability <= 4 && packet.reliability != 2)
+            {
                 packet.orderIndex = Binary.readLTriad(Binary.subbytes(binary, offset, 3));
                 offset = offset + 3;
-                packet.orderChannel = binary[offset++];
+                try
+                {
+                    packet.orderChannel = binary.getByte(offset++);
+                } catch (Exception e)
+                {
+                    //e.printStackTrace(); // beaconpe
+                    packet.orderChannel = -1;
+                }
             }
         }
-
-        if(packet.hasSplit){
+        if (packet.hasSplit)
+        {
             packet.splitCount = Binary.readInt(Binary.subbytes(binary, offset, 4));
             offset = offset + 4;
             packet.splitID = (short) Binary.readShort(Binary.subbytes(binary, offset, 2));
@@ -91,60 +103,68 @@ public class EncapsulatedPacket {
             packet.splitIndex = Binary.readInt(Binary.subbytes(binary, offset, 4));
             offset = offset + 4;
         }
-
         packet.buffer = Binary.subbytes(binary, offset, length);
         offset = offset + length;
         packet.offset = offset;
         return packet;
     }
 
-    public int getTotalLength(){
+    public int getTotalLength()
+    {
         return getTotalLength(false);
     }
 
-    public int getTotalLength(boolean internal){
-        if(internal) {
-            return 9 + buffer.length + (messageIndex != -1 ? 3 : 0) + (orderIndex != -1 ? 4 : 0) + (hasSplit ? 10 : 0);
-        } else {
-            return 3 + buffer.length + (messageIndex != -1 ? 3 : 0) + (orderIndex != -1 ? 4 : 0) + (hasSplit ? 10 : 0);
+    public int getTotalLength(boolean internal)
+    {
+        if (internal)
+        {
+            return 9 + buffer.readableBytes() + (messageIndex != -1 ? 3 : 0) + (orderIndex != -1 ? 4 : 0) + (hasSplit ? 10 : 0);
+        } else
+        {
+            return 3 + buffer.readableBytes() + (messageIndex != -1 ? 3 : 0) + (orderIndex != -1 ? 4 : 0) + (hasSplit ? 10 : 0);
         }
     }
 
-    public byte[] toBinary(boolean internal){
+    public ByteBuf toBinary(boolean internal)
+    {
         int offset = 0;
-        ByteBuffer bb = ByteBuffer.allocate(64 * 64 * 64);
-        bb.put((byte) ((byte) (reliability << 5) | (hasSplit ? 0b00010000 : 0)));
-        if(internal){
-            bb.put(Binary.writeInt(buffer.length));
-            bb.put(Binary.writeInt(identifierACK));
-        } else {
-            bb.put(Binary.writeShort((short) (buffer.length << 3)));
+        ByteBuf bb = buffer(64 * 64 * 64);
+        bb.writeByte((byte) ((byte) (reliability << 5) | (hasSplit ? 0b00010000 : 0)));
+        if (internal)
+        {
+            bb.writeBytes(Binary.writeInt(buffer.readableBytes()));
+            bb.writeBytes(Binary.writeInt(identifierACK));
+        } else
+        {
+            bb.writeBytes(Binary.writeShort((short) (buffer.readableBytes() << 3)));
         }
-
-        if(reliability > 0){
-            if(reliability >= 2 && reliability != 5){
-                bb.put(Binary.writeLTriad(messageIndex));
+        if (reliability > 0)
+        {
+            if (reliability >= 2 && reliability != 5)
+            {
+                bb.writeBytes(Binary.writeLTriad(messageIndex));
             }
-            if(reliability <= 4 && reliability != 2){
-                bb.put(Binary.writeLTriad(orderIndex));
-                bb.put(Binary.writeByte(orderChannel));
+            if (reliability <= 4 && reliability != 2)
+            {
+                bb.writeBytes(Binary.writeLTriad(orderIndex));
+                bb.writeByte(Binary.writeByte(orderChannel));
             }
         }
-
-        if(hasSplit){
-            bb.put(Binary.writeInt(splitCount));
-            bb.put(Binary.writeShort(splitID));
-            bb.put(Binary.writeInt(splitIndex));
+        if (hasSplit)
+        {
+            bb.writeBytes(Binary.writeInt(splitCount));
+            bb.writeBytes(Binary.writeShort(splitID));
+            bb.writeBytes(Binary.writeInt(splitIndex));
         }
-
-        bb.put(buffer);
-        byte[] data = Arrays.copyOf(bb.array(), bb.position());
-        bufferLength = data.length;
+        bb.writeBytes(buffer);
+        ByteBuf data = bb.copy();
+        bufferLength = data.readableBytes();
         bb = null;
         return data;
     }
 
-    public byte[] toBinary(){
+    public ByteBuf toBinary()
+    {
         return toBinary(false);
     }
 }

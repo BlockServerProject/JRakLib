@@ -19,90 +19,106 @@
  */
 package net.beaconpe.jraklib.protocol;
 
-import net.beaconpe.jraklib.Binary;
-
-import java.nio.ByteBuffer;
+import io.netty.buffer.ByteBuf;
+import static io.netty.buffer.Unpooled.buffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import net.beaconpe.jraklib.Binary;
 
 /**
  * Base class for ACK/NACK.
  */
-public abstract class AcknowledgePacket extends Packet{
+public abstract class AcknowledgePacket extends Packet
+{
 
     public Integer[] packets;
 
     @Override
-    protected void _encode() {
-        ByteBuffer payload = ByteBuffer.allocate(1024);
+    protected void _encode()
+    {
+        ByteBuf payload = buffer(1024);
         int count = packets.length;
         int records = 0;
-
-        if(count > 0){
+        if (count > 0)
+        {
             int pointer = 0;
             int start = packets[0];
             int last = packets[0];
-
-            while(pointer + 1 < count){
+            while (pointer + 1 < count)
+            {
                 int current = packets[pointer++];
                 int diff = current - last;
-                if(diff == 1){
+                if (diff == 1)
+                {
                     last = current;
-                } else if(diff > 1){ //Forget about duplicated packets (bad queues?)
-                    if(start == last){
-                        payload.put((byte) 0x01);
-                        payload.put(Binary.writeLTriad(start));
+                } else if (diff > 1)
+                { //Forget about duplicated packets (bad queues?)
+                    if (start == last)
+                    {
+                        payload.writeByte((byte) 0x01);
+                        payload.writeBytes(Binary.writeLTriad(start));
                         start = last = current;
-                    } else {
-                        payload.put((byte) 0x00);
-                        payload.put(Binary.writeLTriad(start));
-                        payload.put(Binary.writeLTriad(last));
+                    } else
+                    {
+                        payload.writeByte((byte) 0x00);
+                        payload.writeBytes(Binary.writeLTriad(start));
+                        payload.writeBytes(Binary.writeLTriad(last));
                         start = last = current;
                     }
                     records = records + 1;
                 }
             }
-
-            if(start == last){
-                payload.put((byte) 0x01);
-                payload.put(Binary.writeLTriad(start));
-            } else {
-                payload.put((byte) 0x00);
-                payload.put(Binary.writeLTriad(start));
-                payload.put(Binary.writeLTriad(last));
+            if (start == last)
+            {
+                payload.writeByte((byte) 0x01);
+                payload.writeBytes(Binary.writeLTriad(start));
+            } else
+            {
+                payload.writeByte((byte) 0x00);
+                payload.writeBytes(Binary.writeLTriad(start));
+                payload.writeBytes(Binary.writeLTriad(last));
             }
             records = records + 1;
         }
         putShort((short) records);
-        put(Arrays.copyOf(payload.array(), payload.position()));
+        put(payload.copy());
     }
 
     @Override
-    protected void _decode() {
+    protected void _decode()
+    {
         int count = getShort();
         List<Integer> packets = new ArrayList<>();
         int cnt = 0;
-        for(int i = 0; i < count && !feof() && cnt < 4096; i++){
-            if(getByte() == 0){
+        for (int i = 0; i < count && !feof() && cnt < 4096; i++)
+        {
+            if (getByte() == 0)
+            {
                 int start = getLTriad();
                 int end = getLTriad();
-                if((end - start) > 512){
+                if ((end - start) > 512)
+                {
                     end = start + 512;
                 }
-                for(int c = start; c <= end; c++){
+                for (int c = start; c <= end; c++)
+                {
                     cnt = cnt + 1;
                     packets.add(c);
                 }
-            } else {
+            } else
+            {
                 packets.add(getLTriad());
             }
         }
         this.packets = packets.stream().toArray(Integer[]::new);
     }
 
-    public void clean(){
-        packets = new Integer[] {};
+    @Override
+    public void clean()
+    {
+        packets = new Integer[]
+        {
+        };
         super.clean();
     }
 }

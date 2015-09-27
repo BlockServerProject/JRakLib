@@ -21,56 +21,65 @@ import net.beaconpe.jraklib.client.ClientHandler;
 import net.beaconpe.jraklib.client.ClientInstance;
 import net.beaconpe.jraklib.client.JRakLibClient;
 import net.beaconpe.jraklib.protocol.EncapsulatedPacket;
-
 import java.io.IOException;
-import java.util.Arrays;
+import net.beaconpe.jraklib.JRakLib;
+import io.netty.buffer.ByteBuf;
 
 /**
- * Random Testing client thing.
- *
- * @author jython234
+ *  Test Client
  */
-public class TestClient {
+public class TestClient
+{
 
-    public static void main(String[] args){
-        try {
-            JRakLibClient.PingResponse response = JRakLibClient.pingServer(null, "imcpe.com", 19132, 5, 500);
-            System.out.println("ServerID: "+response.serverId+", Name: "+response.name);
-        } catch (IOException e) {
+    public static void main(String[] args)
+    {
+        try
+        {
+            JRakLibClient.PingResponse response = JRakLibClient.pingServer(null, "192.168.1.101", 19133, 5, 500);
+            System.out.println("ServerID: " + response.serverId + ", Name: " + response.name);
+        } catch (IOException e)
+        {
             e.printStackTrace();
         }
-        JRakLibClient client = new JRakLibClient(null, "imcpe.com", 19132);
+        JRakLibClient client = new JRakLibClient(null, "192.168.1.101", 19133);
         ClientHandler handler = new ClientHandler(client, new TestClientInstance());
-        while(true){
+        while (true)
+        {
             handler.handlePacket();
         }
     }
 
-    public static class TestClientInstance implements ClientInstance {
+    public static class TestClientInstance implements ClientInstance
+    {
 
         @Override
-        public void connectionOpened(long serverId) {
-            System.out.println("Connection opened! ServerID: "+serverId);
+        public void connectionOpened(long serverId)
+        {
+            System.out.println("Connection opened! ServerID: " + serverId);
         }
 
         @Override
-        public void connectionClosed(String reason) {
-            System.out.println("Connection closed, reason: "+reason);
+        public void connectionClosed(String reason)
+        {
+            System.out.println("Connection closed, reason: " + reason);
         }
 
         @Override
-        public void handleEncapsulated(EncapsulatedPacket packet, int flags) {
-            System.out.println("Encapsulated: "+packet.buffer[0]+", "+flags);
+        public void handleEncapsulated(EncapsulatedPacket packet, int flags)
+        {
+            System.out.println("Encapsulated: " + packet.buffer.getByte(0) + ", " + flags);
         }
 
         @Override
-        public void handleRaw(byte[] payload) {
-            System.out.println("Raw: "+ Arrays.toString(payload));
+        public void handleRaw(ByteBuf payload)
+        {
+            System.out.println("Raw: " + JRakLib.bytebufToHexString(payload));
         }
 
         @Override
-        public void handleOption(String option, String value) {
-            System.out.println("Option: "+option+", "+value);
+        public void handleOption(String option, String value)
+        {
+            System.out.println("Option: " + option + ", " + value);
         }
     }
 
