@@ -34,8 +34,8 @@ public class JRakLibServer extends Thread{
     protected Logger logger;
     protected boolean shutdown = false;
 
-    protected List<byte[]> externalQueue;
-    protected List<byte[]> internalQueue;
+    protected Queue<byte[]> externalQueue;
+    protected Queue<byte[]> internalQueue;
 
     public JRakLibServer(Logger logger, int port, String _interface){
         if(port < 1 || port > 65536){
@@ -45,8 +45,8 @@ public class JRakLibServer extends Thread{
         this.logger = logger;
         this.shutdown = false;
 
-        externalQueue = new LinkedList<>();
-        internalQueue = new LinkedList<>();
+        externalQueue = new ConcurrentLinkedQueue<>();
+        internalQueue = new ConcurrentLinkedQueue<>();
 
         start();
     }
@@ -71,36 +71,32 @@ public class JRakLibServer extends Thread{
         return logger;
     }
 
-    public List<byte[]> getExternalQueue(){
+    public Queue<byte[]> getExternalQueue(){
         return externalQueue;
     }
 
-    public List<byte[]> getInternalQueue(){
+    public Queue<byte[]> getInternalQueue(){
         return internalQueue;
     }
 
     public void pushMainToThreadPacket(byte[] bytes){
-        internalQueue.add(0, bytes);
+        internalQueue.add(bytes);
     }
 
     public byte[] readMainToThreadPacket(){
         if(!internalQueue.isEmpty()) {
-            byte[] data = internalQueue.get(internalQueue.size() - 1);
-            internalQueue.remove(data);
-            return data;
+            return internalQueue.remove();
         }
         return null;
     }
 
     public void pushThreadToMainPacket(byte[] bytes){
-        externalQueue.add(0, bytes);
+        externalQueue.add(bytes);
     }
 
     public byte[] readThreadToMainPacket(){
         if(!externalQueue.isEmpty()) {
-            byte[] data = externalQueue.get(externalQueue.size() - 1);
-            externalQueue.remove(data);
-            return data;
+            return externalQueue.remove();
         }
         return null;
     }
